@@ -2164,8 +2164,16 @@
           const y1 = y0 + dY;
           const yMid = y0 + dY * 0.5;
 
-          // Arched doorway cutout
-          if (Math.abs(normTheta) < doorAngleSpan && yMid < doorTopY) continue;
+          // Arched doorway cutout (conforming precisely to the semi-circular arch profile)
+          if (Math.abs(normTheta) < Math.PI / 2) {
+            const doorX = Math.sin(normTheta) * radius;
+            const absDoorX = Math.abs(doorX);
+            const doorClearR = 0.49;
+            if (absDoorX < doorClearR) {
+              const archCutY = 1.48 + Math.sqrt(Math.max(0, doorClearR * doorClearR - absDoorX * absDoorX));
+              if (yMid < archCutY) continue; // inside doorway opening!
+            }
+          }
 
           // Circular porthole window cutout
           let dWinAngle = normTheta - windowAngle;
@@ -2212,21 +2220,21 @@
     wallOuterMesh.receiveShadow = true;
     wallGroup.add(wallOuterMesh);
 
-    // 58 Vertical Cedar Slats (with Door Cutout & Circular Window Cutout)
+    // 58 Vertical Cedar Slats (with Seamless Door Arch & Circular Window Fit)
     const totalSlats = 58;
     const slatWidth = 0.075;
     const slatDepth = 0.065;
     const slatHeight = 1.95;
     const slatRadius = 1.55;
-    const doorAngleSpan = (25 * Math.PI) / 180;
     const windowAngle = (-72 * Math.PI) / 180;
     const winRadius = 0.34;
     const winY = 1.30;
     const wallBottomY = 0.28;
     const wallTopY = 2.22;
+    const archCenterY = 1.48;
+    const archOuterTrimR = 0.53; // Outer radius of door arch portal
 
     const slatGeo = new THREE.BoxGeometry(slatWidth, slatHeight, slatDepth);
-    const shortSlatGeo = new THREE.BoxGeometry(slatWidth, 0.45, slatDepth);
 
     for (let i = 0; i < totalSlats; i++) {
       const theta = (i / totalSlats) * Math.PI * 2;
@@ -2234,17 +2242,25 @@
       if (normTheta > Math.PI) normTheta -= Math.PI * 2;
       if (normTheta < -Math.PI) normTheta += Math.PI * 2;
 
-      // 1. Door opening slats
-      if (Math.abs(normTheta) < doorAngleSpan) {
-        const slatAbove = new THREE.Mesh(shortSlatGeo, matCedar);
-        slatAbove.position.x = Math.sin(theta) * slatRadius;
-        slatAbove.position.z = Math.cos(theta) * slatRadius;
-        slatAbove.position.y = 2.0;
-        slatAbove.rotation.y = theta;
-        slatAbove.castShadow = true;
-        slatAbove.receiveShadow = true;
-        wallGroup.add(slatAbove);
-        continue;
+      const slatX = Math.sin(normTheta) * slatRadius;
+      const slatZ = Math.cos(normTheta) * slatRadius;
+      const absX = Math.abs(slatX);
+
+      // 1. Slats resting precisely on top of the Arched Entrance Portal
+      if (Math.abs(normTheta) < Math.PI / 2 && absX < archOuterTrimR) {
+        const dy = Math.sqrt(Math.max(0, archOuterTrimR * archOuterTrimR - absX * absX));
+        const archTopAtX = archCenterY + dy;
+        const slatH = wallTopY - archTopAtX;
+
+        if (slatH > 0.03) {
+          const slatAbove = new THREE.Mesh(new THREE.BoxGeometry(slatWidth, slatH, slatDepth), matCedar);
+          slatAbove.position.set(slatX, archTopAtX + slatH / 2, slatZ);
+          slatAbove.rotation.y = theta;
+          slatAbove.castShadow = true;
+          slatAbove.receiveShadow = true;
+          wallGroup.add(slatAbove);
+        }
+        continue; // Never hangs into or penetrates the doorway!
       }
 
       // 2. Window opening slats (split into upper & lower segments around porthole)
@@ -2263,7 +2279,7 @@
         if (lowerH > 0.05) {
           const lowerGeo = new THREE.BoxGeometry(slatWidth, lowerH, slatDepth);
           const lowerSlat = new THREE.Mesh(lowerGeo, matCedar);
-          lowerSlat.position.set(Math.sin(theta) * slatRadius, wallBottomY + lowerH / 2, Math.cos(theta) * slatRadius);
+          lowerSlat.position.set(slatX, wallBottomY + lowerH / 2, slatZ);
           lowerSlat.rotation.y = theta;
           lowerSlat.castShadow = true;
           lowerSlat.receiveShadow = true;
@@ -2272,7 +2288,7 @@
         if (upperH > 0.05) {
           const upperGeo = new THREE.BoxGeometry(slatWidth, upperH, slatDepth);
           const upperSlat = new THREE.Mesh(upperGeo, matCedar);
-          upperSlat.position.set(Math.sin(theta) * slatRadius, openYMax + upperH / 2, Math.cos(theta) * slatRadius);
+          upperSlat.position.set(slatX, openYMax + upperH / 2, slatZ);
           upperSlat.rotation.y = theta;
           upperSlat.castShadow = true;
           upperSlat.receiveShadow = true;
@@ -2281,51 +2297,63 @@
         continue;
       }
 
-      // 3. Regular continuous slats
+      // 3. Regular continuous slats (including those snug right beside the door jambs with zero gap!)
       const slat = new THREE.Mesh(slatGeo, matCedar);
-      slat.position.x = Math.sin(theta) * slatRadius;
-      slat.position.z = Math.cos(theta) * slatRadius;
-      slat.position.y = 1.25;
+      slat.position.set(slatX, 1.25, slatZ);
       slat.rotation.y = theta;
       slat.castShadow = true;
       slat.receiveShadow = true;
       wallGroup.add(slat);
     }
 
-    // 4. Arched Entrance Portal & Threshold Deck
-    const stepShape = new THREE.Shape();
-    stepShape.moveTo(-0.48, 0);
-    stepShape.lineTo(0.48, 0);
-    stepShape.quadraticCurveTo(0.55, 0.4, 0, 0.48);
-    stepShape.quadraticCurveTo(-0.55, 0.4, -0.48, 0);
+    // 4. Integrated Architectural Arched Portal & Threshold Deck
+    // Monolithic extruded cedar arch portal with full-depth jamb reveals (no gaps, no seams)
+    const archPortalShape = new THREE.Shape();
+    const innerR = 0.45;
+    const outerR = 0.53;
+    const ySpring = 1.48;
+    const yFloor = 0.30;
 
-    const stepExtrudeSettings = { depth: 0.1, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
+    archPortalShape.moveTo(-innerR, yFloor);
+    archPortalShape.lineTo(-innerR, ySpring);
+    archPortalShape.absarc(0, ySpring, innerR, Math.PI, 0, true);
+    archPortalShape.lineTo(innerR, yFloor);
+    archPortalShape.lineTo(outerR, yFloor);
+    archPortalShape.lineTo(outerR, ySpring);
+    archPortalShape.absarc(0, ySpring, outerR, 0, Math.PI, false);
+    archPortalShape.lineTo(-outerR, yFloor);
+    archPortalShape.closePath();
+
+    const archPortalExtrudeSettings = {
+      depth: 0.22,
+      bevelEnabled: true,
+      bevelSegments: 3,
+      steps: 1,
+      bevelSize: 0.018,
+      bevelThickness: 0.018,
+    };
+    const archPortalGeo = new THREE.ExtrudeGeometry(archPortalShape, archPortalExtrudeSettings);
+    const archPortalMesh = new THREE.Mesh(archPortalGeo, matCedar);
+    archPortalMesh.position.set(0, 0, 1.36);
+    archPortalMesh.castShadow = true;
+    archPortalMesh.receiveShadow = true;
+    wallGroup.add(archPortalMesh);
+
+    // Threshold Deck (extending seamlessly from interior cushion floor to front garden)
+    const stepShape = new THREE.Shape();
+    stepShape.moveTo(-0.52, 0);
+    stepShape.lineTo(0.52, 0);
+    stepShape.quadraticCurveTo(0.60, 0.45, 0, 0.52);
+    stepShape.quadraticCurveTo(-0.60, 0.45, -0.52, 0);
+
+    const stepExtrudeSettings = { depth: 0.12, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
     const stepGeo = new THREE.ExtrudeGeometry(stepShape, stepExtrudeSettings);
     const stepMesh = new THREE.Mesh(stepGeo, matCedar);
     stepMesh.rotation.x = Math.PI / 2;
-    stepMesh.position.set(0, 0.35, 1.45);
+    stepMesh.position.set(0, 0.32, 1.45);
     stepMesh.castShadow = true;
     stepMesh.receiveShadow = true;
     baseGroup.add(stepMesh);
-
-    const archRadius = 0.48;
-    const archTube = 0.065;
-    const archGeo = new THREE.TorusGeometry(archRadius, archTube, 16, 32, Math.PI);
-    const archMesh = new THREE.Mesh(archGeo, matCedar);
-    archMesh.position.set(0, 1.48, 1.54);
-    archMesh.castShadow = true;
-    wallGroup.add(archMesh);
-
-    const jambGeo = new THREE.CylinderGeometry(archTube, archTube, 1.15, 16);
-    const leftJamb = new THREE.Mesh(jambGeo, matCedar);
-    leftJamb.position.set(-archRadius, 0.90, 1.54);
-    leftJamb.castShadow = true;
-    wallGroup.add(leftJamb);
-
-    const rightJamb = new THREE.Mesh(jambGeo, matCedar);
-    rightJamb.position.set(archRadius, 0.90, 1.54);
-    rightJamb.castShadow = true;
-    wallGroup.add(rightJamb);
 
     // 5. Brass Porthole Window with Tunnel Sleeve & Crystal Clear Glass
     const portholeGroup = new THREE.Group();
