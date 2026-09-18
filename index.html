@@ -2058,6 +2058,7 @@
       color: 0x8a542b,
       map: woodTex,
       roughness: 0.65,
+      side: THREE.DoubleSide,
     });
 
     const matConcrete = new THREE.MeshStandardMaterial({
@@ -2068,18 +2069,24 @@
 
     const matBrass = new THREE.MeshStandardMaterial({
       color: 0xdcb147,
-      roughness: 0.28,
+      roughness: 0.25,
       metalness: 0.88,
+      side: THREE.DoubleSide,
     });
 
     const matGlass = new THREE.MeshPhysicalMaterial({
-      color: 0xebf7fa,
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.45,
-      roughness: 0.1,
-      metalness: 0.1,
-      transmission: 0.6,
-      ior: 1.5,
+      opacity: 0.20,
+      roughness: 0.04,
+      metalness: 0.05,
+      transmission: 0.95, // Crystal clear transmission to view cozy interior!
+      ior: 1.52,
+      reflectivity: 0.6,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      depthWrite: false, // Critical for Three.js transparency sorting of interior items!
+      side: THREE.DoubleSide,
     });
 
     const matCushion = new THREE.MeshStandardMaterial({
@@ -2092,6 +2099,7 @@
     const matInsulation = new THREE.MeshStandardMaterial({
       color: 0xf4c542,
       roughness: 0.9,
+      side: THREE.DoubleSide,
     });
 
     // Blueprint Shaders
@@ -2127,23 +2135,84 @@
     floorMesh.receiveShadow = true;
     interiorGroup.add(floorMesh);
 
-    // 3. Cylinder Wall Structure with Vertical Slats
-    const wallInnerGeo = new THREE.CylinderGeometry(1.42, 1.42, 1.95, 48, 1, true);
+    // 3. Cylinder Wall Structure with Vertical Slats (with Door & Window Cutouts)
+    function createCutoutWallGeometry(radius, wallBottomY = 0.28, wallTopY = 2.22, nTheta = 72, nY = 32) {
+      const positions = [];
+      const normals = [];
+      const uvs = [];
+
+      const winRadius = 0.34;
+      const winY = 1.30;
+      const windowAngle = (-72 * Math.PI) / 180;
+      const doorAngleSpan = (25 * Math.PI) / 180;
+      const doorTopY = 1.95;
+
+      const dTheta = (2 * Math.PI) / nTheta;
+      const dY = (wallTopY - wallBottomY) / nY;
+
+      for (let j = 0; j < nTheta; j++) {
+        const t0 = -Math.PI + j * dTheta;
+        const t1 = t0 + dTheta;
+        const tMid = t0 + dTheta * 0.5;
+
+        let normTheta = tMid;
+        if (normTheta > Math.PI) normTheta -= Math.PI * 2;
+        if (normTheta < -Math.PI) normTheta += Math.PI * 2;
+
+        for (let k = 0; k < nY; k++) {
+          const y0 = wallBottomY + k * dY;
+          const y1 = y0 + dY;
+          const yMid = y0 + dY * 0.5;
+
+          // Arched doorway cutout
+          if (Math.abs(normTheta) < doorAngleSpan && yMid < doorTopY) continue;
+
+          // Circular porthole window cutout
+          let dWinAngle = normTheta - windowAngle;
+          while (dWinAngle > Math.PI) dWinAngle -= Math.PI * 2;
+          while (dWinAngle < -Math.PI) dWinAngle += Math.PI * 2;
+          const dx = dWinAngle * radius;
+          const dy = yMid - winY;
+          if (dx * dx + dy * dy < winRadius * winRadius) continue;
+
+          const p = [
+            [Math.sin(t0) * radius, y1, Math.cos(t0) * radius, Math.sin(t0), 0, Math.cos(t0), (t0 + Math.PI) / (Math.PI * 2) * 4, (y1 - wallBottomY) / (wallTopY - wallBottomY)],
+            [Math.sin(t0) * radius, y0, Math.cos(t0) * radius, Math.sin(t0), 0, Math.cos(t0), (t0 + Math.PI) / (Math.PI * 2) * 4, (y0 - wallBottomY) / (wallTopY - wallBottomY)],
+            [Math.sin(t1) * radius, y0, Math.cos(t1) * radius, Math.sin(t1), 0, Math.cos(t1), (t1 + Math.PI) / (Math.PI * 2) * 4, (y0 - wallBottomY) / (wallTopY - wallBottomY)],
+            [Math.sin(t1) * radius, y1, Math.cos(t1) * radius, Math.sin(t1), 0, Math.cos(t1), (t1 + Math.PI) / (Math.PI * 2) * 4, (y1 - wallBottomY) / (wallTopY - wallBottomY)],
+          ];
+
+          const indices = [0, 1, 2, 0, 2, 3];
+          for (const idx of indices) {
+            positions.push(p[idx][0], p[idx][1], p[idx][2]);
+            normals.push(p[idx][3], p[idx][4], p[idx][5]);
+            uvs.push(p[idx][6], p[idx][7]);
+          }
+        }
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      return geo;
+    }
+
+    const wallInnerGeo = createCutoutWallGeometry(1.42);
     const wallInnerMesh = new THREE.Mesh(wallInnerGeo, matCedarDark);
-    wallInnerMesh.position.y = 1.25;
+    wallInnerMesh.receiveShadow = true;
     wallGroup.add(wallInnerMesh);
 
-    const insulationGeo = new THREE.CylinderGeometry(1.48, 1.48, 1.95, 48, 1, true);
+    const insulationGeo = createCutoutWallGeometry(1.48);
     const insulationMesh = new THREE.Mesh(insulationGeo, matInsulation);
-    insulationMesh.position.y = 1.25;
     wallGroup.add(insulationMesh);
 
-    const wallOuterGeo = new THREE.CylinderGeometry(1.53, 1.53, 1.95, 48, 1, true);
+    const wallOuterGeo = createCutoutWallGeometry(1.53);
     const wallOuterMesh = new THREE.Mesh(wallOuterGeo, matCedarDark);
-    wallOuterMesh.position.y = 1.25;
+    wallOuterMesh.receiveShadow = true;
     wallGroup.add(wallOuterMesh);
 
-    // 58 Vertical Cedar Slats
+    // 58 Vertical Cedar Slats (with Door Cutout & Circular Window Cutout)
     const totalSlats = 58;
     const slatWidth = 0.075;
     const slatDepth = 0.065;
@@ -2151,6 +2220,10 @@
     const slatRadius = 1.55;
     const doorAngleSpan = (25 * Math.PI) / 180;
     const windowAngle = (-72 * Math.PI) / 180;
+    const winRadius = 0.34;
+    const winY = 1.30;
+    const wallBottomY = 0.28;
+    const wallTopY = 2.22;
 
     const slatGeo = new THREE.BoxGeometry(slatWidth, slatHeight, slatDepth);
     const shortSlatGeo = new THREE.BoxGeometry(slatWidth, 0.45, slatDepth);
@@ -2159,7 +2232,9 @@
       const theta = (i / totalSlats) * Math.PI * 2;
       let normTheta = theta;
       if (normTheta > Math.PI) normTheta -= Math.PI * 2;
+      if (normTheta < -Math.PI) normTheta += Math.PI * 2;
 
+      // 1. Door opening slats
       if (Math.abs(normTheta) < doorAngleSpan) {
         const slatAbove = new THREE.Mesh(shortSlatGeo, matCedar);
         slatAbove.position.x = Math.sin(theta) * slatRadius;
@@ -2172,6 +2247,41 @@
         continue;
       }
 
+      // 2. Window opening slats (split into upper & lower segments around porthole)
+      let dWinAngle = normTheta - windowAngle;
+      while (dWinAngle > Math.PI) dWinAngle -= Math.PI * 2;
+      while (dWinAngle < -Math.PI) dWinAngle += Math.PI * 2;
+      const arcDist = Math.abs(dWinAngle * slatRadius);
+
+      if (arcDist < winRadius) {
+        const halfH = Math.sqrt(Math.max(0, winRadius * winRadius - arcDist * arcDist));
+        const openYMin = winY - halfH;
+        const openYMax = winY + halfH;
+        const lowerH = openYMin - wallBottomY;
+        const upperH = wallTopY - openYMax;
+
+        if (lowerH > 0.05) {
+          const lowerGeo = new THREE.BoxGeometry(slatWidth, lowerH, slatDepth);
+          const lowerSlat = new THREE.Mesh(lowerGeo, matCedar);
+          lowerSlat.position.set(Math.sin(theta) * slatRadius, wallBottomY + lowerH / 2, Math.cos(theta) * slatRadius);
+          lowerSlat.rotation.y = theta;
+          lowerSlat.castShadow = true;
+          lowerSlat.receiveShadow = true;
+          wallGroup.add(lowerSlat);
+        }
+        if (upperH > 0.05) {
+          const upperGeo = new THREE.BoxGeometry(slatWidth, upperH, slatDepth);
+          const upperSlat = new THREE.Mesh(upperGeo, matCedar);
+          upperSlat.position.set(Math.sin(theta) * slatRadius, openYMax + upperH / 2, Math.cos(theta) * slatRadius);
+          upperSlat.rotation.y = theta;
+          upperSlat.castShadow = true;
+          upperSlat.receiveShadow = true;
+          wallGroup.add(upperSlat);
+        }
+        continue;
+      }
+
+      // 3. Regular continuous slats
       const slat = new THREE.Mesh(slatGeo, matCedar);
       slat.position.x = Math.sin(theta) * slatRadius;
       slat.position.z = Math.cos(theta) * slatRadius;
@@ -2217,33 +2327,49 @@
     rightJamb.castShadow = true;
     wallGroup.add(rightJamb);
 
-    // 5. Brass Porthole Window (Left Side, windowAngle ~ -72 deg)
+    // 5. Brass Porthole Window with Tunnel Sleeve & Crystal Clear Glass
     const portholeGroup = new THREE.Group();
     const winX = Math.sin(windowAngle) * slatRadius;
     const winZ = Math.cos(windowAngle) * slatRadius;
-    const winY = 1.30;
     portholeGroup.position.set(winX, winY, winZ);
     portholeGroup.rotation.y = windowAngle;
 
-    const brassRingGeo = new THREE.TorusGeometry(0.34, 0.045, 16, 32);
+    // Outer Torus Ring
+    const brassRingGeo = new THREE.TorusGeometry(0.34, 0.042, 16, 36);
     const brassRingMesh = new THREE.Mesh(brassRingGeo, matBrass);
     brassRingMesh.castShadow = true;
     portholeGroup.add(brassRingMesh);
 
-    const glassGeo = new THREE.CircleGeometry(0.32, 32);
+    // Full cylindrical brass tunnel sleeve penetrating through the wall thickness
+    const tunnelLength = 0.20;
+    const tunnelGeo = new THREE.CylinderGeometry(0.34, 0.34, tunnelLength, 36, 1, true);
+    tunnelGeo.rotateX(Math.PI / 2);
+    const tunnelMesh = new THREE.Mesh(tunnelGeo, matBrass);
+    tunnelMesh.position.set(0, 0, -tunnelLength / 2 + 0.02);
+    portholeGroup.add(tunnelMesh);
+
+    // Interior Wall Brass Trim Ring
+    const innerRingMesh = new THREE.Mesh(brassRingGeo, matBrass);
+    innerRingMesh.position.set(0, 0, -tunnelLength + 0.03);
+    portholeGroup.add(innerRingMesh);
+
+    // Crystal Clear Glass Window Pane (Look straight into the cozy interior!)
+    const glassGeo = new THREE.CircleGeometry(0.32, 36);
     const glassMesh = new THREE.Mesh(glassGeo, matGlass);
+    glassMesh.position.set(0, 0, 0.005);
     portholeGroup.add(glassMesh);
 
+    // Brass Rivet Studs around outer rim
     for (let r = 0; r < 10; r++) {
       const angle = (r / 10) * Math.PI * 2;
-      const studGeo = new THREE.SphereGeometry(0.022, 8, 8);
+      const studGeo = new THREE.SphereGeometry(0.02, 8, 8);
       const stud = new THREE.Mesh(studGeo, matBrass);
-      stud.position.set(Math.cos(angle) * 0.34, Math.sin(angle) * 0.34, 0.03);
+      stud.position.set(Math.cos(angle) * 0.34, Math.sin(angle) * 0.34, 0.025);
       portholeGroup.add(stud);
     }
     wallGroup.add(portholeGroup);
 
-    // 6. Cozy Interior Dog Bed Cushion & Pillow
+    // 6. Cozy Interior Dog Bed Cushion, Pillow & Hanging Lantern
     const bedGroup = new THREE.Group();
     bedGroup.position.set(0, 0.32, 0.1);
 
@@ -2262,6 +2388,20 @@
     bedGroup.add(pillowMesh);
 
     interiorGroup.add(bedGroup);
+
+    // Interior Hanging Warm Brass Lantern (Provides visual light source when peering in!)
+    const lanternGroup = new THREE.Group();
+    lanternGroup.position.set(0, 1.85, 0);
+    const lanternCord = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.32, 8), matCedarDark);
+    lanternCord.position.y = 0.16;
+    lanternGroup.add(lanternCord);
+    const lanternCap = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.08, 16), matBrass);
+    lanternCap.position.y = 0.02;
+    lanternGroup.add(lanternCap);
+    const lanternBulb = new THREE.Mesh(new THREE.SphereGeometry(0.065, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffe299 }));
+    lanternBulb.position.y = -0.04;
+    lanternGroup.add(lanternBulb);
+    interiorGroup.add(lanternGroup);
 
     // 7. Iconic Mushroom Toadstool Cap (Photo-Accurate Voluminous Dome & Rolled Rim)
     // Points ordered from bottom center -> rolled rim -> apex dome (ensures outwards surface normals)
@@ -2638,7 +2778,7 @@
        ========================================================================= */
     const presets = {
       front: { pos: [0, 1.4, 4.4], target: [0, 1.2, 0] },
-      porthole: { pos: [-3.8, 1.5, 1.6], target: [-1.4, 1.3, 0] },
+      porthole: { pos: [-3.2, 1.45, 1.25], target: [-0.2, 1.15, 0.0] },
       iso: { pos: [3.8, 2.5, 4.8], target: [0, 1.4, 0] },
       top: { pos: [0.01, 5.6, 0.01], target: [0, 1.5, 0] },
       interior: { pos: [0, 1.0, 1.8], target: [0, 0.7, 0] },
