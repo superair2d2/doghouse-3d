@@ -677,10 +677,10 @@
       transform: translate(-50%, -50%);
       transition: opacity 0.2s;
       z-index: 8;
-      display: none;
+      display: none !important;
     }
     .annotation-marker.active {
-      display: flex;
+      display: flex !important;
       align-items: center;
       gap: 8px;
     }
@@ -834,6 +834,20 @@
       }
       #drag-hint i {
         font-size: 14px;
+      }
+
+      /* Compact 3D Blueprint Markers for Mobile */
+      .marker-label {
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 5px;
+        max-width: 145px;
+        white-space: normal;
+        line-height: 1.25;
+      }
+      .marker-dot {
+        width: 8px;
+        height: 8px;
       }
 
       /* High-Readability Mobile Floating Dock (Bottom) */
@@ -1480,25 +1494,25 @@
   </div>
 
   <!-- 3D Blueprint Annotations Floating Markers -->
-  <div id="annotation-dome" class="annotation-marker">
+  <div id="annotation-dome" class="annotation-marker" style="display: none;">
     <div class="marker-dot"></div>
-    <div class="marker-label">DOME CAP: 4'-0" DIA (FIBERGLASS/CEDAR)</div>
+    <div class="marker-label">버섯 지붕 돔: 4'-0" DIA</div>
   </div>
-  <div id="annotation-wall" class="annotation-marker">
+  <div id="annotation-wall" class="annotation-marker" style="display: none;">
     <div class="marker-dot"></div>
-    <div class="marker-label">CEDAR WOOD PLANK WALLS (HGT 3'-6")</div>
+    <div class="marker-label">시더 원목 벽체: HGT 3'-6"</div>
   </div>
-  <div id="annotation-window" class="annotation-marker">
+  <div id="annotation-window" class="annotation-marker" style="display: none;">
     <div class="marker-dot"></div>
-    <div class="marker-label">BRASS PORTHOLE WINDOW (RIVETED)</div>
+    <div class="marker-label">황동 현창 창문: PORTHOLE</div>
   </div>
-  <div id="annotation-insulation" class="annotation-marker">
+  <div id="annotation-insulation" class="annotation-marker" style="display: none;">
     <div class="marker-dot"></div>
-    <div class="marker-label">R-19 INSULATION (2" THK)</div>
+    <div class="marker-label">R-19 단열재 (2" THK)</div>
   </div>
-  <div id="annotation-base" class="annotation-marker">
+  <div id="annotation-base" class="annotation-marker" style="display: none;">
     <div class="marker-dot"></div>
-    <div class="marker-label">CONCRETE BASE: 3'-6" DIA</div>
+    <div class="marker-label">콘크리트 바닥 기초: 3'-6" DIA</div>
   </div>
 
   <!-- Comparison Split Modal -->
@@ -2573,7 +2587,10 @@
         blueprintLinesGroup.visible = false;
 
         restoreRealisticMaterials();
-        markers.forEach(m => m.classList.remove('active'));
+        markers.forEach(m => {
+          m.classList.remove('active');
+          m.style.display = 'none';
+        });
 
         groundMesh.visible = true;
         if (typeof puppyGroup !== 'undefined' && puppyGroup) puppyGroup.visible = true;
@@ -2845,7 +2862,13 @@
     };
 
     function updateAnnotations() {
-      if (currentMode !== 'blueprint' && currentMode !== 'xray') return;
+      if (currentMode !== 'blueprint' && currentMode !== 'xray') {
+        for (const id in annotationPoints) {
+          const elem = document.getElementById(id);
+          if (elem) elem.style.display = 'none';
+        }
+        return;
+      }
 
       const tempV = new THREE.Vector3();
       for (const id in annotationPoints) {
