@@ -579,6 +579,7 @@
       height: 100%;
       overflow: hidden;
       user-select: none;
+      touch-action: none;
     }
     .split-layer {
       position: absolute;
@@ -610,6 +611,7 @@
       box-shadow: 0 0 16px var(--blueprint-cyan);
       z-index: 10;
       cursor: ew-resize;
+      touch-action: none;
     }
     .split-handle-circle {
       position: absolute;
@@ -708,24 +710,452 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-    /* Responsive adjustments */
+    /* =========================================================================
+       RESPONSIVE DESIGN (PC & MOBILE OPTIMIZATION)
+       ========================================================================= */
+
+    /* Default mobile dock & sheet are hidden on desktop */
+    .mobile-dock {
+      display: none;
+    }
+    .mobile-sheet-backdrop {
+      display: none;
+    }
+    .mobile-bottom-sheet {
+      display: none;
+    }
+
+    /* Tablet & Smartphone Breakpoint (<= 900px) */
     @media (max-width: 900px) {
-      .sidebar-right {
-        display: none;
-      }
+      /* Hide bulky desktop sidebars and bottom bar to maximize 3D viewport */
+      .sidebar-left,
+      .sidebar-right,
       .bottom-bar {
-        font-size: 10px;
-        padding: 8px 14px;
+        display: none !important;
+      }
+
+      /* High-Readability Mobile Header */
+      header {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(14, 18, 24, 0.94);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .brand {
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 19px;
+        border-radius: 10px;
+      }
+      .brand-text h1 {
+        font-size: 15.5px;
+        font-weight: 800;
+        letter-spacing: -0.2px;
+        gap: 6px;
+      }
+      .badge-blueprint {
+        font-size: 9.5px;
+        padding: 2px 7px;
+        font-weight: 700;
+      }
+      .brand-text p {
+        display: none; /* Hide long subtitle on mobile to save vertical space */
+      }
+
+      .top-actions {
+        gap: 7px;
+      }
+      .btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        padding: 0;
+        border-radius: 10px;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+      .btn i {
+        font-size: 16px;
+      }
+      .btn span {
+        display: none; /* Hide text, keep crisp large icons for mobile */
+      }
+
+      /* High-Readability Mode Bar */
+      .mode-bar {
+        top: 68px;
+        right: 12px;
+        padding: 5px;
+        gap: 5px;
+        border-radius: 12px;
+        background: rgba(14, 18, 24, 0.94);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      }
+      .mode-btn {
+        padding: 7px 11px;
+        font-size: 12.5px;
+        font-weight: 700;
+        gap: 6px;
+        border-radius: 8px;
+      }
+      .mode-btn i {
+        font-size: 13px;
+      }
+      .mode-btn span {
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+
+      /* Drag hint badge */
+      #drag-hint {
+        top: 114px;
+        padding: 8px 18px;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 8px;
+        width: max-content;
+        max-width: 90vw;
+        border-radius: 24px;
+        background: rgba(13, 17, 23, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+      #drag-hint i {
+        font-size: 14px;
+      }
+
+      /* High-Readability Mobile Floating Dock (Bottom) */
+      .mobile-dock {
+        position: absolute;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 36px;
+        z-index: 25;
+        background: rgba(13, 17, 23, 0.96);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+        max-width: calc(100vw - 20px);
+        pointer-events: auto;
+      }
+      .dock-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #b0bac8;
+        padding: 8px 11px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dock-btn i {
+        font-size: 17px;
+      }
+      .dock-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .dock-btn.active {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: #ff5252;
+        box-shadow: 0 0 16px var(--primary-glow);
+      }
+
+      /* Mobile Bottom Sheet & Backdrop */
+      .mobile-sheet-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 30;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+      .mobile-sheet-backdrop.show {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .mobile-bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 75vh;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+        padding: 14px 18px 26px 18px;
+        z-index: 35;
+        background: rgba(13, 17, 23, 0.97);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: none;
+        box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.85);
+        transform: translateY(105%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+      }
+      .mobile-bottom-sheet.show {
+        transform: translateY(0);
+      }
+
+      .sheet-handle-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        padding-bottom: 4px;
+      }
+      .sheet-handle {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 44px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 4px;
+      }
+      .sheet-close-btn {
+        margin-left: auto;
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: background 0.2s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .sheet-close-btn:hover {
+        background: var(--primary);
+      }
+
+      .sheet-section-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sheet-section-title i {
+        color: var(--accent-gold);
+        font-size: 17px;
+      }
+
+      /* Mobile Views Grid (3x2) */
+      .mobile-view-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+      }
+      .mobile-view-btn {
+        padding: 12px 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+        transition: all 0.15s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mobile-view-btn i {
+        font-size: 18px;
+        color: var(--accent-gold);
+      }
+      .mobile-view-btn.active {
+        background: rgba(211, 47, 47, 0.35);
+        border-color: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 0 14px var(--primary-glow);
+      }
+
+      /* Mobile Specs Cards Grid */
+      .mobile-spec-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .mobile-spec-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 11px 13px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .mobile-spec-card.full-width {
+        grid-column: span 2;
+      }
+      .mobile-spec-key {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .mobile-spec-val {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      /* Mobile Reference Cards in Sheet */
+      .mobile-ref-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 12px;
+      }
+      .mobile-ref-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        background: #090c10;
+        position: relative;
+      }
+      .mobile-ref-card img {
+        width: 100%;
+        height: 95px;
+        object-fit: cover;
+        display: block;
+      }
+      .mobile-ref-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 7px 10px;
+        background: linear-gradient(0deg, rgba(10,14,18,0.96) 0%, transparent 100%);
+        font-size: 12.5px;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      /* Comparison Modal Mobile Adjustments */
+      .modal-window {
+        width: 96%;
+        height: 88vh;
+        border-radius: 16px;
+      }
+      .modal-header {
+        padding: 12px 16px;
+      }
+      .modal-title {
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .modal-tabs {
+        gap: 6px;
+      }
+      .modal-tab-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .split-handle-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 15px;
+      }
+      .split-badge {
+        font-size: 11px;
+        padding: 5px 10px;
         bottom: 12px;
       }
-      .sidebar-left {
-        width: 190px;
-        padding: 12px;
-        top: 80px;
+    }
+
+    /* Extra small smartphones (<= 420px) */
+    @media (max-width: 420px) {
+      .badge-blueprint {
+        display: none; /* Hide badge on narrow screens to prevent wrap */
       }
-      header {
-        padding: 10px 14px;
+      .brand-text h1 {
+        font-size: 14.5px;
+      }
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        border-radius: 8px;
+      }
+      .top-actions {
+        gap: 5px;
+      }
+      .btn {
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+      }
+      .mobile-dock {
+        padding: 6px 8px;
+        gap: 4px;
+      }
+      .dock-btn {
+        padding: 7px 8px;
+        font-size: 11.5px;
+      }
+      .dock-btn i {
+        font-size: 16px;
+      }
+      .mode-btn {
+        padding: 6px 9px;
+        font-size: 11.5px;
+      }
+      .mode-bar {
+        gap: 3px;
+        top: 64px;
       }
     }
   </style>
@@ -897,6 +1327,155 @@
     <div class="spec-item">
       <span class="spec-key">단열 규격 (Insulation)</span>
       <span class="spec-value">R-19 단열재 (2" Thk)</span>
+    </div>
+  </div>
+
+  <!-- Mobile Floating Quick Dock (Bottom) -->
+  <nav class="mobile-dock" id="mobile-dock">
+    <button class="dock-btn" data-dock="views" id="dock-btn-views" title="카메라 앵글">
+      <i class="fa-solid fa-video"></i>
+      <span>카메라</span>
+    </button>
+    <button class="dock-btn" data-dock="explode" id="dock-btn-explode" title="지붕 분해 조립">
+      <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      <span>지붕분해</span>
+    </button>
+    <button class="dock-btn" data-dock="lighting" id="dock-btn-lighting" title="조명 분위기">
+      <i class="fa-solid fa-sun"></i>
+      <span>조명환경</span>
+    </button>
+    <button class="dock-btn" data-dock="specs" id="dock-btn-specs" title="건축 상세 제원">
+      <i class="fa-solid fa-ruler-combined"></i>
+      <span>상세제원</span>
+    </button>
+    <button class="dock-btn" data-dock="refs" id="dock-btn-refs" title="설계 도면 및 실사 원본">
+      <i class="fa-solid fa-images"></i>
+      <span>참조도면</span>
+    </button>
+  </nav>
+
+  <!-- Mobile Bottom Sheet Backdrop -->
+  <div class="mobile-sheet-backdrop" id="mobile-sheet-backdrop"></div>
+
+  <!-- Mobile Bottom Sheet Panel -->
+  <div class="mobile-bottom-sheet" id="mobile-bottom-sheet">
+    <div class="sheet-handle-bar">
+      <div class="sheet-handle"></div>
+      <button class="sheet-close-btn" id="sheet-close-btn" title="닫기">&times;</button>
+    </div>
+
+    <!-- 1. Views Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-views">
+      <div class="sheet-section-title">
+        <i class="fa-solid fa-video"></i>
+        <span>카메라 앵글 프리셋</span>
+      </div>
+      <div class="mobile-view-grid" style="margin-top: 8px;">
+        <button class="mobile-view-btn active" data-view="front">
+          <i class="fa-solid fa-door-open"></i>
+          <span>정면 출입구</span>
+        </button>
+        <button class="mobile-view-btn" data-view="porthole">
+          <i class="fa-solid fa-circle-notch"></i>
+          <span>측면 창문</span>
+        </button>
+        <button class="mobile-view-btn" data-view="iso">
+          <i class="fa-solid fa-shapes"></i>
+          <span>투시도 (3D)</span>
+        </button>
+        <button class="mobile-view-btn" data-view="top">
+          <i class="fa-solid fa-arrow-down"></i>
+          <span>탑뷰 (지붕)</span>
+        </button>
+        <button class="mobile-view-btn" data-view="interior">
+          <i class="fa-solid fa-couch"></i>
+          <span>실내 방석</span>
+        </button>
+        <button class="mobile-view-btn" data-view="elevation">
+          <i class="fa-solid fa-ruler-combined"></i>
+          <span>도면 입면도</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Explode Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-explode" style="display:none;">
+      <div class="sheet-section-title">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        <span>지붕 분해 조립 (Exploded View)</span>
+      </div>
+      <div class="slider-container" style="margin-top: 8px;">
+        <div class="slider-header">
+          <span>지붕 분해율</span>
+          <span class="val" id="mobile-explode-val">0%</span>
+        </div>
+        <input type="range" id="mobile-explode-slider" min="0" max="100" value="0">
+        <button class="btn-explode-toggle" id="mobile-btn-explode-toggle" style="padding: 10px; font-size: 12px; margin-top: 4px;">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+          <span id="mobile-explode-toggle-text">지붕 들어올리기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Lighting Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-lighting" style="display:none;">
+      <div class="sheet-section-title">
+        <i class="fa-solid fa-sun"></i>
+        <span>조명 분위기 환경</span>
+      </div>
+      <div class="env-row" style="margin-top: 8px;">
+        <button class="env-btn active" data-env="day" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-sun"></i> 낮</button>
+        <button class="env-btn" data-env="sunset" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
+        <button class="env-btn" data-env="night" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-moon"></i> 밤 (조명)</button>
+      </div>
+    </div>
+
+    <!-- 4. Specs Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-specs" style="display:none;">
+      <div class="sheet-section-title">
+        <i class="fa-solid fa-ruler-combined"></i>
+        <span>건축 설계 규격 제원</span>
+      </div>
+      <div class="mobile-spec-grid" style="margin-top: 8px;">
+        <div class="mobile-spec-card">
+          <span class="mobile-spec-key">지붕 돔 직경</span>
+          <span class="mobile-spec-val">4'-0" (121.9 cm)</span>
+        </div>
+        <div class="mobile-spec-card">
+          <span class="mobile-spec-key">벽체 높이</span>
+          <span class="mobile-spec-val">3'-6" (106.7 cm)</span>
+        </div>
+        <div class="mobile-spec-card">
+          <span class="mobile-spec-key">기초 직경</span>
+          <span class="mobile-spec-val">3'-6" (106.7 cm)</span>
+        </div>
+        <div class="mobile-spec-card">
+          <span class="mobile-spec-key">단열 규격</span>
+          <span class="mobile-spec-val">R-19 (2" Thk)</span>
+        </div>
+        <div class="mobile-spec-card full-width">
+          <span class="mobile-spec-key">외장 마감 재질</span>
+          <span class="mobile-spec-val">시더 원목 수직 루버 + 방수 돔 캡</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. References Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-refs" style="display:none;">
+      <div class="sheet-section-title">
+        <i class="fa-solid fa-images"></i>
+        <span>참조 원본 설계 자료 (터치하여 확대)</span>
+      </div>
+      <div class="mobile-ref-grid" style="margin-top: 8px;">
+        <div class="mobile-ref-card" id="mobile-card-render">
+          <img src="./a_photorealistic_detailed_3d_architectural_render_of_an_adorable_mushroom/screen.png" alt="3D 실사 렌더">
+          <div class="mobile-ref-label">3D 실사 렌더</div>
+        </div>
+        <div class="mobile-ref-card" id="mobile-card-blueprint">
+          <img src="./technical_architectural_blueprint_and_schematic_design_drawing_of_a_mushroom/screen.png" alt="설계 청사진 도면">
+          <div class="mobile-ref-label">설계 청사진 도면</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1097,25 +1676,161 @@
       return new THREE.CanvasTexture(canvas);
     }
 
-    function createCapBumpTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#808080';
-      ctx.fillRect(0, 0, 512, 512);
+    function createMushroomCapTextures() {
+      const width = 2048;
+      const height = 1024;
 
-      for (let i = 0; i < 8000; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
-        ctx.fillStyle = Math.random() > 0.5 ? '#949494' : '#6c6c6c';
-        ctx.fillRect(x, y, 2, 2);
+      // 1. Color (Diffuse) Texture Canvas
+      const colCanvas = document.createElement('canvas');
+      colCanvas.width = width;
+      colCanvas.height = height;
+      const colCtx = colCanvas.getContext('2d');
+
+      // 2. Bump Map Canvas (for embossed 3D white spots and fine leather grain)
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = width;
+      bumpCanvas.height = height;
+      const bumpCtx = bumpCanvas.getContext('2d');
+
+      // Warm Tomato/Crimson Red Gradient matching reference photo
+      // V coordinates: top (y=0) is apex dome, middle is cap slope, bottom (y=height) is rolled rim & underside
+      const redGrad = colCtx.createLinearGradient(0, 0, 0, height);
+      redGrad.addColorStop(0.00, '#e03a3a'); // Apex bright mushroom red
+      redGrad.addColorStop(0.35, '#cf2b2b'); // Rich red body
+      redGrad.addColorStop(0.68, '#b61f1f'); // Lower curve
+      redGrad.addColorStop(0.86, '#931515'); // Rolled rim shadow
+      redGrad.addColorStop(1.00, '#5a0d0d'); // Concave underside
+      colCtx.fillStyle = redGrad;
+      colCtx.fillRect(0, 0, width, height);
+
+      // Fine leather/fiberglass tactile texture grain
+      colCtx.fillStyle = 'rgba(0, 0, 0, 0.035)';
+      for (let i = 0; i < 40000; i++) {
+        const rx = Math.random() * width;
+        const ry = Math.random() * height;
+        colCtx.fillRect(rx, ry, 1.5, 1.5);
       }
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(4, 4);
-      return texture;
+      colCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      for (let i = 0; i < 35000; i++) {
+        const rx = Math.random() * width;
+        const ry = Math.random() * height;
+        colCtx.fillRect(rx, ry, 1.5, 1.5);
+      }
+
+      // Neutral Gray (128) Base for Bump Map
+      bumpCtx.fillStyle = '#808080';
+      bumpCtx.fillRect(0, 0, width, height);
+      bumpCtx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+      for (let i = 0; i < 40000; i++) {
+        const rx = Math.random() * width;
+        const ry = Math.random() * height;
+        bumpCtx.fillRect(rx, ry, 2, 2);
+      }
+      bumpCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      for (let i = 0; i < 40000; i++) {
+        const rx = Math.random() * width;
+        const ry = Math.random() * height;
+        bumpCtx.fillRect(rx, ry, 2, 2);
+      }
+
+      // Helper function to render a soft, pillow-embossed white spot with seamless U wrap-around
+      function drawSpot(uCenter, vCenter, radiusU, radiusV, angle = 0) {
+        const drawSingle = (cx, cy) => {
+          // 1. Diffuse Canvas: Subtle ambient occlusion shadow under the spot
+          colCtx.save();
+          colCtx.translate(cx, cy);
+          colCtx.rotate(angle);
+          colCtx.beginPath();
+          colCtx.ellipse(0, 2, radiusU * 1.08, radiusV * 1.08, 0, 0, Math.PI * 2);
+          colCtx.fillStyle = 'rgba(35, 6, 6, 0.28)';
+          colCtx.fill();
+
+          // 2. Diffuse Canvas: Creamy soft white cushion disc with bevel edge
+          const spotGrad = colCtx.createRadialGradient(
+            -radiusU * 0.15, -radiusV * 0.2, radiusU * 0.1,
+            0, 0, Math.max(radiusU, radiusV)
+          );
+          spotGrad.addColorStop(0.00, '#ffffff');
+          spotGrad.addColorStop(0.70, '#faf6ee');
+          spotGrad.addColorStop(0.92, '#ede6d8');
+          spotGrad.addColorStop(1.00, '#d9d0bf'); // Warm edge transition
+
+          colCtx.beginPath();
+          colCtx.ellipse(0, 0, radiusU, radiusV, 0, 0, Math.PI * 2);
+          colCtx.fillStyle = spotGrad;
+          colCtx.fill();
+          colCtx.restore();
+
+          // 3. Bump Canvas: Smooth dome height gradient (embossed effect)
+          bumpCtx.save();
+          bumpCtx.translate(cx, cy);
+          bumpCtx.rotate(angle);
+          const bGrad = bumpCtx.createRadialGradient(0, 0, 0, 0, 0, Math.max(radiusU, radiusV));
+          bGrad.addColorStop(0.00, '#ffffff'); // Maximum protrusion at center
+          bGrad.addColorStop(0.75, '#dedede');
+          bGrad.addColorStop(0.95, '#a4a4a4');
+          bGrad.addColorStop(1.00, '#808080'); // Blends back to neutral base
+          bumpCtx.beginPath();
+          bumpCtx.ellipse(0, 0, radiusU, radiusV, 0, 0, Math.PI * 2);
+          bumpCtx.fillStyle = bGrad;
+          bumpCtx.fill();
+          bumpCtx.restore();
+        };
+
+        const baseX = (uCenter % 1.0) * width;
+        const baseY = (1.0 - vCenter) * height;
+
+        // Render at coordinates and handle seamless wrap at U=0 and U=width
+        drawSingle(baseX, baseY);
+        if (baseX - radiusU < 0) drawSingle(baseX + width, baseY);
+        if (baseX + radiusU > width) drawSingle(baseX - width, baseY);
+      }
+
+      // --- Spot Positions matching photographic reference ---
+      // V: 0.0 (base) -> 0.40 (rim) -> 0.65 (mid) -> 0.82 (crown) -> 0.96 (apex)
+
+      // 1. Apex Spots (Center crown)
+      drawSpot(0.02, 0.94, 62, 50, 0);
+      drawSpot(0.52, 0.94, 62, 50, 0.1);
+
+      // 2. Crown Ring (6 prominent oval spots)
+      const ring1Count = 6;
+      for (let i = 0; i < ring1Count; i++) {
+        const u = (i / ring1Count) + 0.05;
+        const rU = 74 + (i % 2) * 8;
+        const rV = 62 + (i % 2) * 6;
+        drawSpot(u % 1.0, 0.82 + ((i % 2) - 0.5) * 0.03, rU, rV, 0.2 * (i % 3 - 1));
+      }
+
+      // 3. Mid Ring (8 large cushion spots, as seen on entrance facade)
+      const ring2Count = 8;
+      for (let i = 0; i < ring2Count; i++) {
+        const u = (i / ring2Count) + 0.08;
+        const rU = 88 + (i % 3) * 10;
+        const rV = 76 + (i % 3) * 8;
+        drawSpot(u % 1.0, 0.64 + ((i % 2) - 0.5) * 0.04, rU, rV, 0.22 * ((i % 2) ? 1 : -1));
+      }
+
+      // 4. Lower Eaves Ring (10 soft spots gently tapering towards rim)
+      const ring3Count = 10;
+      for (let i = 0; i < ring3Count; i++) {
+        const u = (i / ring3Count) + 0.03;
+        const rU = 54 + (i % 2) * 6;
+        const rV = 46 + (i % 2) * 5;
+        drawSpot(u % 1.0, 0.47 + ((i % 2) - 0.5) * 0.03, rU, rV, 0.25 * ((i % 2) ? 1 : -1));
+      }
+
+      const diffTex = new THREE.CanvasTexture(colCanvas);
+      diffTex.wrapS = THREE.RepeatWrapping;
+      diffTex.wrapT = THREE.ClampToEdgeWrapping;
+      diffTex.needsUpdate = true;
+
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping;
+      bumpTex.wrapT = THREE.ClampToEdgeWrapping;
+      bumpTex.needsUpdate = true;
+
+      return { diffTex, bumpTex };
     }
 
     function createFabricTexture() {
@@ -1135,15 +1850,49 @@
     }
 
     /* =========================================================================
-       THREE.JS SCENE, CAMERA & RENDERER SETUP
+       THREE.JS SCENE, CAMERA & RENDERER SETUP (RESPONSIVE)
        ========================================================================= */
+    function getResponsiveCameraSettings() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspect = width / height;
+
+      let fov = 40;
+      let distFactor = 1.0;
+
+      if (aspect < 0.6) {
+        // 스마트폰 세로 모드: 도그하우스 전체가 한눈에 보이도록 FOV 56도로 확장
+        fov = 56;
+        distFactor = 1.15;
+      } else if (aspect < 0.85) {
+        // 일반 스마트폰 세로 또는 태블릿 세로
+        fov = 50;
+        distFactor = 1.08;
+      } else if (aspect < 1.15) {
+        // 정사각형 및 작은 태블릿
+        fov = 44;
+        distFactor = 1.04;
+      } else {
+        // PC 와이드 화면
+        fov = 40;
+        distFactor = 1.0;
+      }
+
+      return { fov, aspect, distFactor };
+    }
+
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#14181f');
     scene.fog = new THREE.FogExp2('#14181f', 0.035);
 
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(3.8, 2.5, 4.8);
+    const initCam = getResponsiveCameraSettings();
+    const camera = new THREE.PerspectiveCamera(initCam.fov, initCam.aspect, 0.1, 100);
+    camera.position.set(
+      3.8 * initCam.distFactor,
+      2.5 * initCam.distFactor,
+      4.8 * initCam.distFactor
+    );
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1157,24 +1906,35 @@
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.minDistance = 2.0;
-    controls.maxDistance = 14.0;
+    controls.minDistance = 1.8;
+    controls.maxDistance = 16.0;
     controls.maxPolarAngle = Math.PI / 2 - 0.02; // Keep slightly above ground
-    controls.target.set(0, 1.4, 0);
+    controls.target.set(0, 1.40, 0);
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN
+    };
 
-    // Hide drag hint on first drag
+    // Mobile / Touch hint text customization
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const dragHint = document.getElementById('drag-hint');
+    if (isTouchDevice && dragHint) {
+      const hintSpan = dragHint.querySelector('span');
+      if (hintSpan) hintSpan.textContent = '화면을 드래그해 360° 회전 • 두 손가락 줌';
+    }
+
+    // Hide drag hint on first drag or auto-hide after 4 seconds
     let hasInteracted = false;
-    controls.addEventListener('start', () => {
-      if (!hasInteracted) {
+    function dismissHint() {
+      if (!hasInteracted && dragHint) {
         hasInteracted = true;
-        const hint = document.getElementById('drag-hint');
-        if (hint) {
-          hint.style.opacity = '0';
-          hint.style.transform = 'translateX(-50%) translateY(-10px)';
-          setTimeout(() => hint.remove(), 600);
-        }
+        dragHint.style.opacity = '0';
+        dragHint.style.transform = 'translateX(-50%) translateY(-10px)';
+        setTimeout(() => { if (dragHint.parentNode) dragHint.remove(); }, 600);
       }
-    });
+    }
+    controls.addEventListener('start', dismissHint);
+    setTimeout(dismissHint, 4200);
 
     /* =========================================================================
        LIGHTING SETUP
@@ -1211,7 +1971,7 @@
        ========================================================================= */
     const woodTex = createWoodTexture();
     const concreteTex = createConcreteTexture();
-    const capBumpTex = createCapBumpTexture();
+    const { diffTex: capDiffuseTex, bumpTex: capBumpTex } = createMushroomCapTextures();
     const fabricTex = createFabricTexture();
 
     const houseGroup = new THREE.Group();
@@ -1231,17 +1991,46 @@
 
     // Realistic Materials
     const matCap = new THREE.MeshStandardMaterial({
-      color: 0xc82a2a,
-      roughness: 0.42,
-      metalness: 0.04,
+      color: 0xffffff, // Full fidelity to photographic diffuse map
+      map: capDiffuseTex,
       bumpMap: capBumpTex,
-      bumpScale: 0.015,
+      bumpScale: 0.045, // Embossed 3D white spots and tactile leather finish
+      roughness: 0.44,
+      metalness: 0.02,
+      side: THREE.DoubleSide, // Ensure roof is completely opaque and visible inside & out!
     });
 
-    const matSpot = new THREE.MeshStandardMaterial({
-      color: 0xfcfaf5,
-      roughness: 0.65,
+    // White Puppy Materials
+    const matPuppyFur = new THREE.MeshStandardMaterial({
+      color: 0xfbfbf8,
+      roughness: 0.85,
       metalness: 0.02,
+    });
+    const matPuppyNose = new THREE.MeshStandardMaterial({
+      color: 0x181818,
+      roughness: 0.22,
+      metalness: 0.15,
+    });
+    const matPuppyEye = new THREE.MeshStandardMaterial({
+      color: 0x0c0c0c,
+      roughness: 0.1,
+      metalness: 0.2,
+    });
+    const matPuppyCatchlight = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+    });
+    const matPuppyCollar = new THREE.MeshStandardMaterial({
+      color: 0xd32f2f,
+      roughness: 0.35,
+    });
+    const matPuppyTag = new THREE.MeshStandardMaterial({
+      color: 0xffb300,
+      roughness: 0.25,
+      metalness: 0.88,
+    });
+    const matPuppyTongue = new THREE.MeshStandardMaterial({
+      color: 0xff7085,
+      roughness: 0.45,
     });
 
     const matCedar = new THREE.MeshStandardMaterial({
@@ -1460,59 +2249,191 @@
 
     interiorGroup.add(bedGroup);
 
-    // 7. Iconic Mushroom Toadstool Cap (Roof Dome)
+    // 7. Iconic Mushroom Toadstool Cap (Photo-Accurate Voluminous Dome & Rolled Rim)
+    // Points ordered from bottom center -> rolled rim -> apex dome (ensures outwards surface normals)
     const capPoints = [
-      new THREE.Vector2(0.001, 3.55),
-      new THREE.Vector2(0.45, 3.50),
-      new THREE.Vector2(0.95, 3.35),
-      new THREE.Vector2(1.45, 3.05),
-      new THREE.Vector2(1.85, 2.65),
-      new THREE.Vector2(2.08, 2.30),
-      new THREE.Vector2(2.04, 2.18),
-      new THREE.Vector2(1.78, 2.15),
-      new THREE.Vector2(1.45, 2.22),
-      new THREE.Vector2(0.001, 2.25)
+      new THREE.Vector2(0.001, 2.26), // Concave ceiling center
+      new THREE.Vector2(1.42, 2.22),
+      new THREE.Vector2(1.68, 2.14),
+      new THREE.Vector2(1.92, 2.06), // Inward curl
+      new THREE.Vector2(2.12, 2.10), // Lower rolled rim curve
+      new THREE.Vector2(2.20, 2.22), // Bullnose rolled rim edge
+      new THREE.Vector2(2.18, 2.38), // Voluminous overhang
+      new THREE.Vector2(2.02, 2.66),
+      new THREE.Vector2(1.74, 3.02),
+      new THREE.Vector2(1.34, 3.32),
+      new THREE.Vector2(0.88, 3.52),
+      new THREE.Vector2(0.42, 3.62),
+      new THREE.Vector2(0.001, 3.65)  // Apex dome
     ];
 
-    const capGeo = new THREE.LatheGeometry(capPoints, 64);
+    const capGeo = new THREE.LatheGeometry(capPoints, 72);
     capGeo.computeVertexNormals();
     const capMesh = new THREE.Mesh(capGeo, matCap);
     capMesh.castShadow = true;
     capMesh.receiveShadow = true;
     roofGroup.add(capMesh);
 
-    // White 3D Tactile Discs on Mushroom Cap
-    const spotsData = [
-      { pos: [0, 3.56, 0], rot: [0, 0, 0], scale: [0.38, 0.05, 0.38] },
-      { pos: [0.72, 3.38, 0.40], rot: [-0.35, 0.5, 0], scale: [0.28, 0.04, 0.28] },
-      { pos: [-0.68, 3.39, 0.45], rot: [-0.38, -0.5, 0], scale: [0.26, 0.04, 0.26] },
-      { pos: [0.0, 3.42, -0.82], rot: [0.45, 0, 0], scale: [0.30, 0.04, 0.30] },
-      { pos: [0.85, 3.32, -0.40], rot: [0.3, 1.2, 0], scale: [0.25, 0.04, 0.25] },
-      { pos: [-0.85, 3.32, -0.38], rot: [0.3, -1.2, 0], scale: [0.25, 0.04, 0.25] },
-      { pos: [1.38, 2.92, 0.65], rot: [-0.75, 0.8, -0.2], scale: [0.26, 0.04, 0.26] },
-      { pos: [-1.35, 2.93, 0.70], rot: [-0.75, -0.8, 0.2], scale: [0.27, 0.04, 0.27] },
-      { pos: [0.0, 2.98, 1.55], rot: [-0.85, 0, 0], scale: [0.29, 0.04, 0.29] },
-      { pos: [-1.45, 2.90, -0.55], rot: [0.7, -1.4, 0], scale: [0.24, 0.04, 0.24] },
-      { pos: [1.45, 2.90, -0.55], rot: [0.7, 1.4, 0], scale: [0.24, 0.04, 0.24] },
-      { pos: [-0.70, 2.96, -1.35], rot: [0.85, -0.5, 0], scale: [0.25, 0.04, 0.25] },
-      { pos: [0.70, 2.96, -1.35], rot: [0.85, 0.5, 0], scale: [0.25, 0.04, 0.25] },
-      { pos: [1.88, 2.45, 0.55], rot: [-1.15, 1.1, -0.3], scale: [0.19, 0.03, 0.19] },
-      { pos: [-1.88, 2.45, 0.55], rot: [-1.15, -1.1, 0.3], scale: [0.19, 0.03, 0.19] },
-      { pos: [0.65, 2.46, 1.85], rot: [-1.2, 0.35, 0], scale: [0.21, 0.03, 0.21] },
-      { pos: [-0.65, 2.46, 1.85], rot: [-1.2, -0.35, 0], scale: [0.21, 0.03, 0.21] },
-      { pos: [1.82, 2.46, -0.75], rot: [1.15, 1.2, 0], scale: [0.18, 0.03, 0.18] },
-      { pos: [-1.82, 2.46, -0.75], rot: [1.15, -1.2, 0], scale: [0.18, 0.03, 0.18] },
-    ];
+    // 8. Adorable White Puppy (Sitting happily in front of the doghouse entrance)
+    const puppyGroup = new THREE.Group();
+    // 문 앞 디딤판 오른쪽 잔디 (x: 0.65, z: 1.88), 집에서 나와 방문자를 반갑게 맞이하는 방향
+    puppyGroup.position.set(0.68, 0.02, 1.88);
+    puppyGroup.rotation.y = -Math.PI * 0.22;
+    scene.add(puppyGroup);
 
-    const spotGeo = new THREE.CylinderGeometry(1, 1, 1, 32);
-    spotsData.forEach(s => {
-      const spotMesh = new THREE.Mesh(spotGeo, matSpot);
-      spotMesh.position.set(s.pos[0], s.pos[1], s.pos[2]);
-      spotMesh.rotation.set(s.rot[0], s.rot[1], s.rot[2]);
-      spotMesh.scale.set(s.scale[0], s.scale[1], s.scale[2]);
-      spotMesh.castShadow = true;
-      roofGroup.add(spotMesh);
-    });
+    // Plump Sitting Body
+    const puppyBodyGeo = new THREE.SphereGeometry(0.25, 24, 24);
+    const puppyBody = new THREE.Mesh(puppyBodyGeo, matPuppyFur);
+    puppyBody.scale.set(0.96, 1.15, 0.92);
+    puppyBody.position.set(0, 0.28, 0);
+    puppyBody.rotation.x = 0.15;
+    puppyBody.castShadow = true;
+    puppyBody.receiveShadow = true;
+    puppyGroup.add(puppyBody);
+
+    // Head Group (for interactive / idle animation)
+    const puppyHeadGroup = new THREE.Group();
+    puppyHeadGroup.position.set(0, 0.52, 0.07);
+    puppyGroup.add(puppyHeadGroup);
+
+    // Round Fluffy Head
+    const puppyHeadGeo = new THREE.SphereGeometry(0.22, 24, 24);
+    const puppyHead = new THREE.Mesh(puppyHeadGeo, matPuppyFur);
+    puppyHead.scale.set(1.08, 1.0, 1.0);
+    puppyHead.castShadow = true;
+    puppyHeadGroup.add(puppyHead);
+
+    // Snout / Muzzle
+    const puppySnoutGeo = new THREE.SphereGeometry(0.09, 16, 16);
+    const puppySnout = new THREE.Mesh(puppySnoutGeo, matPuppyFur);
+    puppySnout.scale.set(1.05, 0.88, 1.25);
+    puppySnout.position.set(0, -0.04, 0.16);
+    puppySnout.castShadow = true;
+    puppyHeadGroup.add(puppySnout);
+
+    // Glossy Black Nose
+    const puppyNoseGeo = new THREE.SphereGeometry(0.032, 16, 16);
+    const puppyNose = new THREE.Mesh(puppyNoseGeo, matPuppyNose);
+    puppyNose.scale.set(1.15, 0.85, 0.9);
+    puppyNose.position.set(0, -0.01, 0.265);
+    puppyHeadGroup.add(puppyNose);
+
+    // Cute Little Tongue
+    const puppyTongueGeo = new THREE.SphereGeometry(0.026, 12, 12);
+    const puppyTongue = new THREE.Mesh(puppyTongueGeo, matPuppyTongue);
+    puppyTongue.scale.set(0.85, 0.4, 1.4);
+    puppyTongue.position.set(0, -0.065, 0.23);
+    puppyTongue.rotation.x = 0.2;
+    puppyHeadGroup.add(puppyTongue);
+
+    // Sparkling Black Bead Eyes with Bright Catchlights
+    const puppyEyeGeo = new THREE.SphereGeometry(0.035, 16, 16);
+    const catchlightGeo = new THREE.SphereGeometry(0.011, 8, 8);
+
+    const leftEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
+    leftEye.position.set(-0.08, 0.04, 0.18);
+    const leftCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
+    leftCatch.position.set(-0.07, 0.055, 0.21);
+    puppyHeadGroup.add(leftEye);
+    puppyHeadGroup.add(leftCatch);
+
+    const rightEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
+    rightEye.position.set(0.08, 0.04, 0.18);
+    const rightCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
+    rightCatch.position.set(0.09, 0.055, 0.21);
+    puppyHeadGroup.add(rightEye);
+    puppyHeadGroup.add(rightCatch);
+
+    // Fluffy Floppy Ears
+    const earGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    earGeo.scale(0.65, 1.3, 0.7);
+
+    const leftEar = new THREE.Mesh(earGeo, matPuppyFur);
+    leftEar.position.set(-0.19, 0.03, -0.02);
+    leftEar.rotation.set(0.2, 0, 0.42);
+    leftEar.castShadow = true;
+    puppyHeadGroup.add(leftEar);
+
+    const rightEar = new THREE.Mesh(earGeo, matPuppyFur);
+    rightEar.position.set(0.19, 0.03, -0.02);
+    rightEar.rotation.set(0.2, 0, -0.42);
+    rightEar.castShadow = true;
+    puppyHeadGroup.add(rightEar);
+
+    // Red Collar with Gold Medallion Tag (matches doghouse red)
+    const collarGeo = new THREE.TorusGeometry(0.16, 0.022, 12, 28);
+    const collarMesh = new THREE.Mesh(collarGeo, matPuppyCollar);
+    collarMesh.rotation.x = Math.PI / 2;
+    collarMesh.position.set(0, 0.40, 0.04);
+    collarMesh.castShadow = true;
+    puppyGroup.add(collarMesh);
+
+    const tagGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.008, 16);
+    const tagMesh = new THREE.Mesh(tagGeo, matPuppyTag);
+    tagMesh.rotation.x = Math.PI / 2;
+    tagMesh.position.set(0, 0.36, 0.19);
+    tagMesh.castShadow = true;
+    puppyGroup.add(tagMesh);
+
+    // Front Legs & Paws
+    const frontLegGeo = new THREE.CylinderGeometry(0.045, 0.04, 0.22, 16);
+    const pawGeo = new THREE.SphereGeometry(0.052, 16, 16);
+    pawGeo.scale(1.0, 0.6, 1.2);
+
+    const leftLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    leftLeg.position.set(-0.085, 0.12, 0.12);
+    leftLeg.rotation.x = -0.08;
+    leftLeg.castShadow = true;
+    puppyGroup.add(leftLeg);
+
+    const leftPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    leftPaw.position.set(-0.085, 0.03, 0.15);
+    leftPaw.castShadow = true;
+    puppyGroup.add(leftPaw);
+
+    const rightLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    rightLeg.position.set(0.085, 0.12, 0.12);
+    rightLeg.rotation.x = -0.08;
+    rightLeg.castShadow = true;
+    puppyGroup.add(rightLeg);
+
+    const rightPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    rightPaw.position.set(0.085, 0.03, 0.15);
+    rightPaw.castShadow = true;
+    puppyGroup.add(rightPaw);
+
+    // Sitting Hind Legs
+    const hindLegGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    hindLegGeo.scale(1.25, 0.8, 1.4);
+
+    const leftHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
+    leftHind.position.set(-0.16, 0.08, -0.02);
+    leftHind.castShadow = true;
+    puppyGroup.add(leftHind);
+
+    const rightHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
+    rightHind.position.set(0.16, 0.08, -0.02);
+    rightHind.castShadow = true;
+    puppyGroup.add(rightHind);
+
+    // Wagging Fluffy Tail
+    const puppyTailGroup = new THREE.Group();
+    puppyTailGroup.position.set(0, 0.12, -0.18);
+    puppyGroup.add(puppyTailGroup);
+
+    const tailGeo = new THREE.CylinderGeometry(0.025, 0.045, 0.18, 16);
+    const tailTipGeo = new THREE.SphereGeometry(0.045, 12, 12);
+
+    const tailMesh = new THREE.Mesh(tailGeo, matPuppyFur);
+    tailMesh.position.set(0, 0.08, -0.04);
+    tailMesh.rotation.x = -0.7;
+    tailMesh.castShadow = true;
+    puppyTailGroup.add(tailMesh);
+
+    const tailTipMesh = new THREE.Mesh(tailTipGeo, matPuppyFur);
+    tailTipMesh.position.set(0, 0.16, -0.09);
+    tailTipMesh.castShadow = true;
+    puppyTailGroup.add(tailTipMesh);
 
     // 8. Ground Garden Pedestal & Stepping Stones
     const groundGeo = new THREE.CylinderGeometry(4.2, 4.4, 0.35, 48);
@@ -1629,6 +2550,7 @@
         markers.forEach(m => m.classList.add('active'));
 
         groundMesh.visible = false;
+        if (typeof puppyGroup !== 'undefined' && puppyGroup) puppyGroup.visible = false;
         hemiLight.intensity = 0.3;
         dirLight.intensity = 0.5;
         interiorLight.color.set('#00e5ff');
@@ -1641,6 +2563,7 @@
         markers.forEach(m => m.classList.add('active'));
 
         groundMesh.visible = true;
+        if (typeof puppyGroup !== 'undefined' && puppyGroup) puppyGroup.visible = true;
         hemiLight.intensity = 0.6;
         dirLight.intensity = 1.0;
         interiorLight.color.set('#ffaa44');
@@ -1653,6 +2576,7 @@
         markers.forEach(m => m.classList.remove('active'));
 
         groundMesh.visible = true;
+        if (typeof puppyGroup !== 'undefined' && puppyGroup) puppyGroup.visible = true;
         hemiLight.intensity = 0.7;
         dirLight.intensity = 1.6;
         interiorLight.color.set('#ffaa44');
@@ -1693,7 +2617,7 @@
     }
 
     /* =========================================================================
-       CAMERA PRESET POSITIONS
+       CAMERA PRESET POSITIONS (RESPONSIVE)
        ========================================================================= */
     const presets = {
       front: { pos: [0, 1.4, 4.4], target: [0, 1.2, 0] },
@@ -1710,14 +2634,19 @@
 
       playSound('swoosh');
 
-      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-      const activeBtn = document.querySelector(`.btn-preset[data-view="${presetKey}"]`);
-      if (activeBtn) activeBtn.classList.add('active');
+      // PC 및 모바일 프리셋 버튼 활성화 상태 동기화
+      document.querySelectorAll(`[data-view="${presetKey}"]`).forEach(b => b.classList.add('active'));
+      document.querySelectorAll(`[data-view]:not([data-view="${presetKey}"])`).forEach(b => b.classList.remove('active'));
+
+      const { distFactor } = getResponsiveCameraSettings();
+      const targetX = p.pos[0] * distFactor;
+      const targetY = p.pos[1] * distFactor;
+      const targetZ = p.pos[2] * distFactor;
 
       gsap.to(camera.position, {
-        x: p.pos[0],
-        y: p.pos[1],
-        z: p.pos[2],
+        x: targetX,
+        y: targetY,
+        z: targetZ,
         duration: 1.1,
         ease: 'power3.inOut'
       });
@@ -1732,30 +2661,51 @@
     }
 
     /* =========================================================================
-       EXPLODED ROOF VIEW
+       EXPLODED ROOF VIEW (DUAL SYNC: PC & MOBILE)
        ========================================================================= */
     const explodeSlider = document.getElementById('explode-slider');
     const explodeValText = document.getElementById('explode-val');
     const btnExplodeToggle = document.getElementById('btn-explode-toggle');
     const explodeToggleText = document.getElementById('explode-toggle-text');
 
+    const mobileExplodeSlider = document.getElementById('mobile-explode-slider');
+    const mobileExplodeValText = document.getElementById('mobile-explode-val');
+    const mobileBtnExplodeToggle = document.getElementById('mobile-btn-explode-toggle');
+    const mobileExplodeToggleText = document.getElementById('mobile-explode-toggle-text');
+
     function updateExplode(val) {
-      explodeSlider.value = Math.round(val * 100);
-      explodeValText.textContent = `${Math.round(val * 100)}%`;
+      const pct = Math.round(val * 100);
+      const label = val > 0.5 ? '지붕 닫기' : '지붕 들어올리기';
+
+      if (explodeSlider) explodeSlider.value = pct;
+      if (explodeValText) explodeValText.textContent = `${pct}%`;
+      if (explodeToggleText) explodeToggleText.textContent = label;
+
+      if (mobileExplodeSlider) mobileExplodeSlider.value = pct;
+      if (mobileExplodeValText) mobileExplodeValText.textContent = `${pct}%`;
+      if (mobileExplodeToggleText) mobileExplodeToggleText.textContent = label;
+
       roofGroup.position.y = val * 1.85;
       interiorGroup.position.y = val * 0.35;
-      explodeToggleText.textContent = val > 0.5 ? '지붕 닫기' : '지붕 들어올리기';
     }
 
-    explodeSlider.addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value) / 100;
-      updateExplode(val);
-    });
+    if (explodeSlider) {
+      explodeSlider.addEventListener('input', (e) => {
+        updateExplode(parseFloat(e.target.value) / 100);
+      });
+    }
 
-    btnExplodeToggle.addEventListener('click', () => {
+    if (mobileExplodeSlider) {
+      mobileExplodeSlider.addEventListener('input', (e) => {
+        updateExplode(parseFloat(e.target.value) / 100);
+      });
+    }
+
+    function toggleExplodeAnim() {
       playSound('click');
-      const targetVal = parseFloat(explodeSlider.value) > 10 ? 0 : 1;
-      gsap.to({ v: parseFloat(explodeSlider.value) / 100 }, {
+      const currentVal = parseFloat(explodeSlider ? explodeSlider.value : (mobileExplodeSlider ? mobileExplodeSlider.value : 0)) / 100;
+      const targetVal = currentVal > 0.1 ? 0 : 1;
+      gsap.to({ v: currentVal }, {
         v: targetVal,
         duration: 0.8,
         ease: 'power2.inOut',
@@ -1763,16 +2713,21 @@
           updateExplode(this.targets()[0].v);
         }
       });
-    });
+    }
+
+    if (btnExplodeToggle) btnExplodeToggle.addEventListener('click', toggleExplodeAnim);
+    if (mobileBtnExplodeToggle) mobileBtnExplodeToggle.addEventListener('click', toggleExplodeAnim);
 
     /* =========================================================================
-       LIGHTING ATMOSPHERE
+       LIGHTING ATMOSPHERE (DUAL SYNC: PC & MOBILE)
        ========================================================================= */
     document.querySelectorAll('.env-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        setLightingEnvironment(btn.dataset.env);
+        const env = btn.dataset.env;
+        document.querySelectorAll('.env-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.env === env);
+        });
+        setLightingEnvironment(env);
       });
     });
 
@@ -1800,10 +2755,89 @@
     }
 
     /* =========================================================================
+       MOBILE BOTTOM SHEET & DOCK CONTROLLER
+       ========================================================================= */
+    const mobileSheet = document.getElementById('mobile-bottom-sheet');
+    const mobileBackdrop = document.getElementById('mobile-sheet-backdrop');
+    const sheetCloseBtn = document.getElementById('sheet-close-btn');
+    let activeDockTab = null;
+
+    function openMobileSheet(tabKey) {
+      document.querySelectorAll('.sheet-tab-content').forEach(c => c.style.display = 'none');
+      const targetContent = document.getElementById(`sheet-tab-${tabKey}`);
+      if (targetContent) targetContent.style.display = 'block';
+
+      document.querySelectorAll('.dock-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.dock === tabKey);
+      });
+
+      if (mobileSheet) mobileSheet.classList.add('show');
+      if (mobileBackdrop) mobileBackdrop.classList.add('show');
+      activeDockTab = tabKey;
+      playSound('click');
+    }
+
+    function closeMobileSheet() {
+      if (mobileSheet) mobileSheet.classList.remove('show');
+      if (mobileBackdrop) mobileBackdrop.classList.remove('show');
+      document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+      activeDockTab = null;
+    }
+
+    document.querySelectorAll('.dock-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.dock;
+        if (activeDockTab === tab) {
+          closeMobileSheet();
+          playSound('click');
+        } else {
+          openMobileSheet(tab);
+        }
+      });
+    });
+
+    if (sheetCloseBtn) {
+      sheetCloseBtn.addEventListener('click', () => {
+        closeMobileSheet();
+        playSound('click');
+      });
+    }
+    if (mobileBackdrop) {
+      mobileBackdrop.addEventListener('click', () => {
+        closeMobileSheet();
+      });
+    }
+
+    // 모바일 앵글 프리셋 버튼 클릭 이벤트
+    document.querySelectorAll('.mobile-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        transitionCamera(btn.dataset.view);
+      });
+    });
+
+    // 모바일 참조 카드 클릭 이벤트 (시트 닫고 고화질 모달 열기)
+    const mobileCardRender = document.getElementById('mobile-card-render');
+    const mobileCardBlueprint = document.getElementById('mobile-card-blueprint');
+    if (mobileCardRender) {
+      mobileCardRender.addEventListener('click', () => {
+        closeMobileSheet();
+        openModal();
+        switchModalTab('render-full');
+      });
+    }
+    if (mobileCardBlueprint) {
+      mobileCardBlueprint.addEventListener('click', () => {
+        closeMobileSheet();
+        openModal();
+        switchModalTab('blueprint-full');
+      });
+    }
+
+    /* =========================================================================
        3D ANNOTATION PROJECTOR
        ========================================================================= */
     const annotationPoints = {
-      'annotation-dome': new THREE.Vector3(0, 3.4, 0),
+      'annotation-dome': new THREE.Vector3(0, 3.68, 0),
       'annotation-wall': new THREE.Vector3(1.6, 1.4, 0),
       'annotation-window': new THREE.Vector3(winX, winY, winZ),
       'annotation-insulation': new THREE.Vector3(-1.45, 1.8, 0),
@@ -1940,11 +2974,15 @@
     }
 
     splitHandleLine.addEventListener('mousedown', () => isDraggingSplit = true);
-    splitHandleLine.addEventListener('touchstart', () => isDraggingSplit = true);
+    splitHandleLine.addEventListener('touchstart', (e) => {
+      isDraggingSplit = true;
+      e.preventDefault();
+    }, { passive: false });
+
     window.addEventListener('mouseup', () => isDraggingSplit = false);
     window.addEventListener('touchend', () => isDraggingSplit = false);
     window.addEventListener('mousemove', handleSplitMove);
-    window.addEventListener('touchmove', handleSplitMove);
+    window.addEventListener('touchmove', handleSplitMove, { passive: true });
 
     /* =========================================================================
        EVENT LISTENERS
@@ -1972,18 +3010,46 @@
       });
     });
 
-    // Window Resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    // Window Resize & Orientation Change (Responsive FOV & Camera Update)
+    function handleWindowResize() {
+      const { fov, aspect } = getResponsiveCameraSettings();
+      camera.aspect = aspect;
+      camera.fov = fov;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // PC 화면 복귀 시 모바일 시트 닫기
+      if (window.innerWidth > 900) {
+        closeMobileSheet();
+      }
+    }
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleWindowResize, 200);
     });
 
     /* =========================================================================
        ANIMATION LOOP
        ========================================================================= */
+    let puppyTime = 0;
     function animate() {
       requestAnimationFrame(animate);
+      puppyTime += 0.04;
+
+      // Adorable Puppy Live Animations (wagging tail, head tilt & gentle breathing)
+      if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+        puppyTailGroup.rotation.y = Math.sin(puppyTime * 7.5) * 0.42;
+        puppyTailGroup.rotation.x = -0.15 + Math.sin(puppyTime * 3.5) * 0.08;
+      }
+      if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+        puppyHeadGroup.rotation.z = 0.06 + Math.sin(puppyTime * 2.2) * 0.05;
+        puppyHeadGroup.rotation.x = Math.sin(puppyTime * 3.0) * 0.025;
+      }
+      if (typeof puppyGroup !== 'undefined' && puppyGroup) {
+        puppyGroup.position.y = 0.02 + Math.sin(puppyTime * 3.5) * 0.005;
+      }
+
       controls.update();
       updateAnnotations();
       renderer.render(scene, camera);
