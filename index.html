@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>버섯 도그하우스 3D 인터랙티브 뷰어 | Mushroom Doghouse 3D</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #d32f2f;
+      --primary-hover: #b71c1c;
+      --primary-glow: rgba(211, 47, 47, 0.4);
+      --blueprint-cyan: #00e5ff;
+      --blueprint-glow: rgba(0, 229, 255, 0.35);
+      --blueprint-bg: #0b2238;
+      --dark: #0f1318;
+      --panel-bg: rgba(15, 19, 24, 0.82);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: #f3f5f8;
+      --text-muted: #9aa2b0;
+      --accent-gold: #ffb300;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background-color: #12161c;
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* 3D Canvas */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+    }
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+
+    /* Glassmorphism Panel Base */
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    /* Header Bar */
+    header {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+    }
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #e53935, #b71c1c);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 6px 18px var(--primary-glow);
+    }
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-blueprint {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--blueprint-cyan);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .btn.active {
+      background: var(--primary);
+      border-color: #ff5252;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    /* Central Drag Hint Badge */
+    #drag-hint {
+      position: absolute;
+      top: 92px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 22px;
+      border-radius: 30px;
+      background: rgba(10, 14, 20, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 13px;
+      color: #e2e8f0;
+      pointer-events: none;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: pulseGlow 2.5s infinite ease-in-out;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    #drag-hint i {
+      color: var(--accent-gold);
+      font-size: 14px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.95; transform: translateX(-50%) scale(1); }
+      50% { opacity: 0.7; transform: translateX(-50%) scale(0.98); }
+    }
+
+    /* Floating View Mode Bar (Top Right) */
+    .mode-bar {
+      position: absolute;
+      top: 86px;
+      right: 20px;
+      padding: 6px;
+      display: flex;
+      gap: 6px;
+      border-radius: 12px;
+    }
+    .mode-btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .mode-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .mode-btn.active {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .mode-btn.blueprint-mode.active {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--blueprint-cyan);
+      border-color: var(--blueprint-cyan);
+      box-shadow: 0 0 12px var(--blueprint-glow);
+    }
+
+    /* Left Control Sidebar: Camera Presets & Exploded View */
+    .sidebar-left {
+      position: absolute;
+      left: 20px;
+      top: 96px;
+      width: 224px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+    .sidebar-left::-webkit-scrollbar {
+      width: 4px;
+    }
+    .sidebar-left::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .view-buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .btn-preset {
+      padding: 9px 8px;
+      font-size: 11px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .btn-preset i {
+      font-size: 14px;
+      color: var(--accent-gold);
+    }
+    .btn-preset:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn-preset.active {
+      background: rgba(211, 47, 47, 0.28);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Exploded View Controls */
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .slider-header span.val {
+      color: var(--accent-gold);
+      font-family: monospace;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--primary-glow);
+      transition: transform 0.1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .btn-explode-toggle {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-explode-toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Lighting Environment Controls */
+    .env-row {
+      display: flex;
+      gap: 6px;
+    }
+    .env-btn {
+      flex: 1;
+      padding: 7px 4px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .env-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Right Panel: Source Images & Comparison */
+    .sidebar-right {
+      position: absolute;
+      right: 20px;
+      top: 140px;
+      width: 260px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .thumb-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      background: #090c10;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform-style: preserve-3d;
+      perspective: 800px;
+    }
+    .thumb-card:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+    }
+    .thumb-card img {
+      width: 100%;
+      height: 112px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .thumb-card:hover img {
+      transform: scale(1.06);
+    }
+    .thumb-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: linear-gradient(0deg, rgba(10,14,18,0.95) 0%, rgba(10,14,18,0.5) 70%, transparent 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .thumb-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .thumb-tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-family: monospace;
+    }
+
+    /* Bottom Specifications Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      border-radius: 40px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .spec-key {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .spec-value {
+      font-weight: 700;
+      color: #f0f3f6;
+      font-size: 12px;
+    }
+    .spec-divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Comparison Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .modal-backdrop.show {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-window {
+      width: 92%;
+      max-width: 1100px;
+      height: 84vh;
+      background: #11151c;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .modal-header {
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .modal-tab-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-tab-btn.active {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .modal-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: rgba(211, 47, 47, 0.85);
+      transform: scale(1.1);
+    }
+    .modal-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      background: #080b0e;
+    }
+
+    /* Split Slider with Clip-Path (Clean, pixel-perfect comparison) */
+    .split-viewer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      user-select: none;
+    }
+    .split-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .split-layer img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .split-layer.top-layer {
+      z-index: 2;
+      clip-path: inset(0 50% 0 0);
+    }
+    .split-handle-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: var(--blueprint-cyan);
+      box-shadow: 0 0 16px var(--blueprint-cyan);
+      z-index: 10;
+      cursor: ew-resize;
+    }
+    .split-handle-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--blueprint-cyan);
+      color: #0d273d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--blueprint-glow);
+      font-size: 16px;
+    }
+    .split-badge {
+      position: absolute;
+      bottom: 18px;
+      padding: 6px 14px;
+      background: rgba(10, 14, 18, 0.8);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 15;
+    }
+    .split-badge.left {
+      left: 20px;
+      border: 1px solid var(--blueprint-cyan);
+      color: var(--blueprint-cyan);
+    }
+    .split-badge.right {
+      right: 20px;
+      border: 1px solid #ff5252;
+      color: #ff7675;
+    }
+
+    /* Single Image HD View Tab */
+    .single-img-view {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .single-img-view.active {
+      display: flex;
+    }
+    .single-img-view img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    /* 3D Blueprint Floating Callouts */
+    .annotation-marker {
+      position: absolute;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s;
+      z-index: 8;
+      display: none;
+    }
+    .annotation-marker.active {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .marker-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--blueprint-cyan);
+      box-shadow: 0 0 12px var(--blueprint-cyan);
+      border: 2px solid #fff;
+      animation: pulseMarker 1.8s infinite;
+    }
+    @keyframes pulseMarker {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.8); }
+      70% { transform: scale(1.3); box-shadow: 0 0 0 10px rgba(0, 229, 255, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
+    }
+    .marker-label {
+      background: rgba(11, 34, 56, 0.92);
+      border: 1px solid var(--blueprint-cyan);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: monospace;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .sidebar-right {
+        display: none;
+      }
+      .bottom-bar {
+        font-size: 10px;
+        padding: 8px 14px;
+        gap: 12px;
+        bottom: 12px;
+      }
+      .sidebar-left {
+        width: 190px;
+        padding: 12px;
+        top: 80px;
+      }
+      header {
+        padding: 10px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Three.js 3D Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Central Drag Guide Hint -->
+  <div id="drag-hint">
+    <i class="fa-solid fa-arrows-spin"></i>
+    <span>마우스를 좌우상하로 드래그하면 도그하우스가 360° 회전합니다</span>
+  </div>
+
+  <!-- Header Bar -->
+  <header class="glass-panel">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-paw"></i>
+      </div>
+      <div class="brand-text">
+        <h1>버섯 도그하우스 3D 뷰어 <span class="badge-blueprint">Architectural 3D</span></h1>
+        <p>Mushroom Doghouse 360° Interactive Turntable & Schematic Design</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn" id="btn-turntable" title="360도 자동 회전 토글">
+        <i class="fa-solid fa-rotate"></i>
+        <span>360° 턴테이블</span>
+      </button>
+      <button class="btn" id="btn-split-modal" title="도면과 실사 렌더링 비교">
+        <i class="fa-solid fa-code-compare"></i>
+        <span>도면/렌더 비교</span>
+      </button>
+      <button class="btn" id="btn-snapshot" title="현재 시점 고화질 캡처">
+        <i class="fa-solid fa-camera"></i>
+        <span>스냅샷</span>
+      </button>
+      <button class="btn" id="btn-sound" title="효과음 켜기/끄기">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Top Right Mode Bar -->
+  <div class="mode-bar glass-panel">
+    <button class="mode-btn active" id="mode-realistic" title="따뜻한 정원 조명과 질감">
+      <i class="fa-solid fa-cube"></i>
+      <span>실사 3D 렌더</span>
+    </button>
+    <button class="mode-btn blueprint-mode" id="mode-blueprint" title="청사진 및 치수선 와이어프레임">
+      <i class="fa-solid fa-compass-drafting"></i>
+      <span>청사진 모드</span>
+    </button>
+    <button class="mode-btn" id="mode-xray" title="단면 투시 및 내부 구조">
+      <i class="fa-solid fa-layer-group"></i>
+      <span>단면/투시</span>
+    </button>
+  </div>
+
+  <!-- Left Sidebar: Controls & Presets -->
+  <aside class="sidebar-left glass-panel">
+    <div class="panel-title">
+      <span>카메라 앵글 프리셋</span>
+      <i class="fa-solid fa-video"></i>
+    </div>
+    <div class="view-buttons-grid">
+      <button class="btn-preset active" data-view="front">
+        <i class="fa-solid fa-door-open"></i>
+        <span>정면 출입구</span>
+      </button>
+      <button class="btn-preset" data-view="porthole">
+        <i class="fa-solid fa-circle-notch"></i>
+        <span>측면 창문</span>
+      </button>
+      <button class="btn-preset" data-view="iso">
+        <i class="fa-solid fa-shapes"></i>
+        <span>투시도 (3D)</span>
+      </button>
+      <button class="btn-preset" data-view="top">
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>탑뷰 (지붕)</span>
+      </button>
+      <button class="btn-preset" data-view="interior">
+        <i class="fa-solid fa-couch"></i>
+        <span>실내 방석</span>
+      </button>
+      <button class="btn-preset" data-view="elevation">
+        <i class="fa-solid fa-ruler-combined"></i>
+        <span>도면 입면도</span>
+      </button>
+    </div>
+
+    <!-- Exploded Roof Slider -->
+    <div class="slider-container">
+      <div class="slider-header">
+        <span>지붕 분해 조립 (Exploded)</span>
+        <span class="val" id="explode-val">0%</span>
+      </div>
+      <input type="range" id="explode-slider" min="0" max="100" value="0">
+      <button class="btn-explode-toggle" id="btn-explode-toggle">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        <span id="explode-toggle-text">지붕 들어올리기</span>
+      </button>
+    </div>
+
+    <!-- Lighting Environment -->
+    <div class="panel-title">
+      <span>조명 환경 (Atmosphere)</span>
+      <i class="fa-solid fa-sun"></i>
+    </div>
+    <div class="env-row">
+      <button class="env-btn active" data-env="day"><i class="fa-solid fa-sun"></i> 낮</button>
+      <button class="env-btn" data-env="sunset"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
+      <button class="env-btn" data-env="night"><i class="fa-solid fa-moon"></i> 밤 (조명)</button>
+    </div>
+  </aside>
+
+  <!-- Right Sidebar: Source Reference Cards -->
+  <aside class="sidebar-right glass-panel">
+    <div class="panel-title">
+      <span>참조 원본 자료 (References)</span>
+      <i class="fa-solid fa-images"></i>
+    </div>
+
+    <!-- Photorealistic Render Card -->
+    <div class="thumb-card" id="card-render" title="실사 렌더링 원본 보기">
+      <img src="./a_photorealistic_detailed_3d_architectural_render_of_an_adorable_mushroom/screen.png" alt="Photorealistic Render">
+      <div class="thumb-overlay">
+        <span class="thumb-label">3D 실사 렌더</span>
+        <span class="thumb-tag">Render.png</span>
+      </div>
+    </div>
+
+    <!-- Technical Blueprint Card -->
+    <div class="thumb-card" id="card-blueprint" title="청사진 설계 도면 원본 보기">
+      <img src="./technical_architectural_blueprint_and_schematic_design_drawing_of_a_mushroom/screen.png" alt="Schematic Blueprint">
+      <div class="thumb-overlay">
+        <span class="thumb-label">설계 청사진 도면</span>
+        <span class="thumb-tag">Blueprint.png</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Specifications Bar -->
+  <div class="bottom-bar glass-panel">
+    <div class="spec-item">
+      <span class="spec-key">지붕 돔 직경 (Dome Dia)</span>
+      <span class="spec-value">4'-0" (121.9 cm)</span>
+    </div>
+    <div class="spec-divider"></div>
+    <div class="spec-item">
+      <span class="spec-key">벽체 높이 (Wall Hgt)</span>
+      <span class="spec-value">3'-6" (106.7 cm)</span>
+    </div>
+    <div class="spec-divider"></div>
+    <div class="spec-item">
+      <span class="spec-key">기초 직경 (Base Dia)</span>
+      <span class="spec-value">3'-6" (106.7 cm)</span>
+    </div>
+    <div class="spec-divider"></div>
+    <div class="spec-item">
+      <span class="spec-key">외장 재질 (Exterior)</span>
+      <span class="spec-value">시더 원목 루버 + 방수 돔</span>
+    </div>
+    <div class="spec-divider"></div>
+    <div class="spec-item">
+      <span class="spec-key">단열 규격 (Insulation)</span>
+      <span class="spec-value">R-19 단열재 (2" Thk)</span>
+    </div>
+  </div>
+
+  <!-- 3D Blueprint Annotations Floating Markers -->
+  <div id="annotation-dome" class="annotation-marker">
+    <div class="marker-dot"></div>
+    <div class="marker-label">DOME CAP: 4'-0" DIA (FIBERGLASS/CEDAR)</div>
+  </div>
+  <div id="annotation-wall" class="annotation-marker">
+    <div class="marker-dot"></div>
+    <div class="marker-label">CEDAR WOOD PLANK WALLS (HGT 3'-6")</div>
+  </div>
+  <div id="annotation-window" class="annotation-marker">
+    <div class="marker-dot"></div>
+    <div class="marker-label">BRASS PORTHOLE WINDOW (RIVETED)</div>
+  </div>
+  <div id="annotation-insulation" class="annotation-marker">
+    <div class="marker-dot"></div>
+    <div class="marker-label">R-19 INSULATION (2" THK)</div>
+  </div>
+  <div id="annotation-base" class="annotation-marker">
+    <div class="marker-dot"></div>
+    <div class="marker-label">CONCRETE BASE: 3'-6" DIA</div>
+  </div>
+
+  <!-- Comparison Split Modal -->
+  <div class="modal-backdrop" id="comparison-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-layer-group" style="color: var(--blueprint-cyan);"></i>
+          <span>청사진 도면 vs 실사 3D 렌더 비교 분석</span>
+        </div>
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" data-tab="split">슬라이더 비교</button>
+          <button class="modal-tab-btn" data-tab="blueprint-full">청사진 원본</button>
+          <button class="modal-tab-btn" data-tab="render-full">실사 렌더 원본</button>
+        </div>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Split View Tab -->
+        <div class="split-viewer" id="tab-split">
+          <!-- Bottom Layer: Photorealistic Render -->
+          <div class="split-layer bottom-layer">
+            <img src="./a_photorealistic_detailed_3d_architectural_render_of_an_adorable_mushroom/screen.png" alt="Render">
+            <div class="split-badge right">3D 실사 렌더링</div>
+          </div>
+
+          <!-- Top Layer: Blueprint (clipped) -->
+          <div class="split-layer top-layer" id="split-top-layer">
+            <img src="./technical_architectural_blueprint_and_schematic_design_drawing_of_a_mushroom/screen.png" alt="Blueprint">
+            <div class="split-badge left">설계 도면 (Schematic Blueprint)</div>
+          </div>
+
+          <!-- Draggable Divider -->
+          <div class="split-handle-line" id="split-handle-line">
+            <div class="split-handle-circle">
+              <i class="fa-solid fa-arrows-left-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blueprint Full Tab -->
+        <div class="single-img-view" id="tab-blueprint-full">
+          <img src="./technical_architectural_blueprint_and_schematic_design_drawing_of_a_mushroom/screen.png" alt="Blueprint HD">
+        </div>
+
+        <!-- Render Full Tab -->
+        <div class="single-img-view" id="tab-render-full">
+          <img src="./a_photorealistic_detailed_3d_architectural_render_of_an_adorable_mushroom/screen.png" alt="Render HD">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js and Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <script>
+    /* =========================================================================
+       AUDIO SYNTHESIS (Web Audio API)
+       ========================================================================= */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(650, now);
+          osc.frequency.exponentialRampToValueAtTime(320, now + 0.07);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.005, now + 0.07);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } else if (type === 'swoosh') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(240, now);
+          osc.frequency.exponentialRampToValueAtTime(560, now + 0.22);
+          gain.gain.setValueAtTime(0.09, now);
+          gain.gain.linearRampToValueAtTime(0.005, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        } else if (type === 'blueprint') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.setValueAtTime(1040, now + 0.04);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.linearRampToValueAtTime(0.005, now + 0.16);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        }
+      } catch (e) {}
+    }
+
+    /* =========================================================================
+       PROCEDURAL TEXTURE GENERATORS
+       ========================================================================= */
+    function createWoodTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      const grad = ctx.createLinearGradient(0, 0, 512, 0);
+      grad.addColorStop(0, '#c28b58');
+      grad.addColorStop(0.5, '#d49d69');
+      grad.addColorStop(1, '#b57d4b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Fine vertical wood fibers
+      ctx.fillStyle = 'rgba(75, 45, 18, 0.08)';
+      for (let i = 0; i < 512; i += 2) {
+        if (Math.random() > 0.3) {
+          ctx.fillRect(i, 0, 1 + Math.random() * 2, 512);
+        }
+      }
+
+      ctx.strokeStyle = 'rgba(95, 52, 20, 0.12)';
+      ctx.lineWidth = 1.6;
+      for (let j = 0; j < 14; j++) {
+        ctx.beginPath();
+        const startX = Math.random() * 512;
+        ctx.moveTo(startX, 0);
+        ctx.bezierCurveTo(
+          startX + (Math.random() - 0.5) * 45, 170,
+          startX + (Math.random() - 0.5) * 45, 340,
+          startX + (Math.random() - 0.5) * 35, 512
+        );
+        ctx.stroke();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function createConcreteTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#90969d';
+      ctx.fillRect(0, 0, 256, 256);
+
+      for (let i = 0; i < 4000; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 256;
+        const radius = Math.random() * 1.5;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(30,35,40,0.22)' : 'rgba(255,255,255,0.28)';
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createCapBumpTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < 8000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.5 ? '#949494' : '#6c6c6c';
+        ctx.fillRect(x, y, 2, 2);
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(4, 4);
+      return texture;
+    }
+
+    function createFabricTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f5eee4';
+      ctx.fillRect(0, 0, 128, 128);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      for (let i = 0; i < 128; i += 4) {
+        ctx.fillRect(i, 0, 2, 128);
+        ctx.fillRect(0, i, 128, 2);
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    /* =========================================================================
+       THREE.JS SCENE, CAMERA & RENDERER SETUP
+       ========================================================================= */
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#14181f');
+    scene.fog = new THREE.FogExp2('#14181f', 0.035);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(3.8, 2.5, 4.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 2.0;
+    controls.maxDistance = 14.0;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // Keep slightly above ground
+    controls.target.set(0, 1.4, 0);
+
+    // Hide drag hint on first drag
+    let hasInteracted = false;
+    controls.addEventListener('start', () => {
+      if (!hasInteracted) {
+        hasInteracted = true;
+        const hint = document.getElementById('drag-hint');
+        if (hint) {
+          hint.style.opacity = '0';
+          hint.style.transform = 'translateX(-50%) translateY(-10px)';
+          setTimeout(() => hint.remove(), 600);
+        }
+      }
+    });
+
+    /* =========================================================================
+       LIGHTING SETUP
+       ========================================================================= */
+    const hemiLight = new THREE.HemisphereLight(0xfff5e6, 0x3d4835, 0.7);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfffaed, 1.6);
+    dirLight.position.set(5, 8, 4);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 25;
+    dirLight.shadow.camera.left = -4;
+    dirLight.shadow.camera.right = 4;
+    dirLight.shadow.camera.top = 4;
+    dirLight.shadow.camera.bottom = -4;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0xb4d8ff, 0.45);
+    fillLight.position.set(-5, 4, -4);
+    scene.add(fillLight);
+
+    // Warm cozy interior lamp inside the house
+    const interiorLight = new THREE.PointLight(0xffaa44, 2.2, 4.0, 1.5);
+    interiorLight.position.set(0, 1.1, 0);
+    interiorLight.castShadow = true;
+    scene.add(interiorLight);
+
+    /* =========================================================================
+       MATERIALS SETUP
+       ========================================================================= */
+    const woodTex = createWoodTexture();
+    const concreteTex = createConcreteTexture();
+    const capBumpTex = createCapBumpTexture();
+    const fabricTex = createFabricTexture();
+
+    const houseGroup = new THREE.Group();
+    scene.add(houseGroup);
+
+    const baseGroup = new THREE.Group();
+    const wallGroup = new THREE.Group();
+    const roofGroup = new THREE.Group();
+    const interiorGroup = new THREE.Group();
+    const blueprintLinesGroup = new THREE.Group();
+
+    houseGroup.add(baseGroup);
+    houseGroup.add(wallGroup);
+    houseGroup.add(roofGroup);
+    houseGroup.add(interiorGroup);
+    houseGroup.add(blueprintLinesGroup);
+
+    // Realistic Materials
+    const matCap = new THREE.MeshStandardMaterial({
+      color: 0xc82a2a,
+      roughness: 0.42,
+      metalness: 0.04,
+      bumpMap: capBumpTex,
+      bumpScale: 0.015,
+    });
+
+    const matSpot = new THREE.MeshStandardMaterial({
+      color: 0xfcfaf5,
+      roughness: 0.65,
+      metalness: 0.02,
+    });
+
+    const matCedar = new THREE.MeshStandardMaterial({
+      color: 0xba8252,
+      map: woodTex,
+      roughness: 0.55,
+      metalness: 0.05,
+    });
+
+    const matCedarDark = new THREE.MeshStandardMaterial({
+      color: 0x8a542b,
+      map: woodTex,
+      roughness: 0.65,
+    });
+
+    const matConcrete = new THREE.MeshStandardMaterial({
+      color: 0x9399a0,
+      map: concreteTex,
+      roughness: 0.85,
+    });
+
+    const matBrass = new THREE.MeshStandardMaterial({
+      color: 0xdcb147,
+      roughness: 0.28,
+      metalness: 0.88,
+    });
+
+    const matGlass = new THREE.MeshPhysicalMaterial({
+      color: 0xebf7fa,
+      transparent: true,
+      opacity: 0.45,
+      roughness: 0.1,
+      metalness: 0.1,
+      transmission: 0.6,
+      ior: 1.5,
+    });
+
+    const matCushion = new THREE.MeshStandardMaterial({
+      color: 0xf1ebe1,
+      map: fabricTex,
+      roughness: 0.85,
+      metalness: 0.0,
+    });
+
+    const matInsulation = new THREE.MeshStandardMaterial({
+      color: 0xf4c542,
+      roughness: 0.9,
+    });
+
+    // Blueprint Shaders
+    const matBlueprintWire = new THREE.MeshBasicMaterial({
+      color: 0x00e5ff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.65,
+    });
+
+    /* =========================================================================
+       MODEL GEOMETRY BUILDER
+       ========================================================================= */
+
+    // 1. Concrete Base (Dia: 3'-6" = R: 1.75, H: 0.3)
+    const baseGeo = new THREE.CylinderGeometry(1.75, 1.82, 0.26, 48);
+    const baseMesh = new THREE.Mesh(baseGeo, matConcrete);
+    baseMesh.position.y = 0.13;
+    baseMesh.receiveShadow = true;
+    baseMesh.castShadow = true;
+    baseGroup.add(baseMesh);
+
+    const baseSubGeo = new THREE.CylinderGeometry(1.86, 1.90, 0.08, 48);
+    const baseSubMesh = new THREE.Mesh(baseSubGeo, matConcrete);
+    baseSubMesh.position.y = 0.04;
+    baseSubMesh.receiveShadow = true;
+    baseGroup.add(baseSubMesh);
+
+    // 2. Interior Floor Disc
+    const floorGeo = new THREE.CylinderGeometry(1.50, 1.50, 0.05, 36);
+    const floorMesh = new THREE.Mesh(floorGeo, matCedarDark);
+    floorMesh.position.y = 0.28;
+    floorMesh.receiveShadow = true;
+    interiorGroup.add(floorMesh);
+
+    // 3. Cylinder Wall Structure with Vertical Slats
+    const wallInnerGeo = new THREE.CylinderGeometry(1.42, 1.42, 1.95, 48, 1, true);
+    const wallInnerMesh = new THREE.Mesh(wallInnerGeo, matCedarDark);
+    wallInnerMesh.position.y = 1.25;
+    wallGroup.add(wallInnerMesh);
+
+    const insulationGeo = new THREE.CylinderGeometry(1.48, 1.48, 1.95, 48, 1, true);
+    const insulationMesh = new THREE.Mesh(insulationGeo, matInsulation);
+    insulationMesh.position.y = 1.25;
+    wallGroup.add(insulationMesh);
+
+    const wallOuterGeo = new THREE.CylinderGeometry(1.53, 1.53, 1.95, 48, 1, true);
+    const wallOuterMesh = new THREE.Mesh(wallOuterGeo, matCedarDark);
+    wallOuterMesh.position.y = 1.25;
+    wallGroup.add(wallOuterMesh);
+
+    // 58 Vertical Cedar Slats
+    const totalSlats = 58;
+    const slatWidth = 0.075;
+    const slatDepth = 0.065;
+    const slatHeight = 1.95;
+    const slatRadius = 1.55;
+    const doorAngleSpan = (25 * Math.PI) / 180;
+    const windowAngle = (-72 * Math.PI) / 180;
+
+    const slatGeo = new THREE.BoxGeometry(slatWidth, slatHeight, slatDepth);
+    const shortSlatGeo = new THREE.BoxGeometry(slatWidth, 0.45, slatDepth);
+
+    for (let i = 0; i < totalSlats; i++) {
+      const theta = (i / totalSlats) * Math.PI * 2;
+      let normTheta = theta;
+      if (normTheta > Math.PI) normTheta -= Math.PI * 2;
+
+      if (Math.abs(normTheta) < doorAngleSpan) {
+        const slatAbove = new THREE.Mesh(shortSlatGeo, matCedar);
+        slatAbove.position.x = Math.sin(theta) * slatRadius;
+        slatAbove.position.z = Math.cos(theta) * slatRadius;
+        slatAbove.position.y = 2.0;
+        slatAbove.rotation.y = theta;
+        slatAbove.castShadow = true;
+        slatAbove.receiveShadow = true;
+        wallGroup.add(slatAbove);
+        continue;
+      }
+
+      const slat = new THREE.Mesh(slatGeo, matCedar);
+      slat.position.x = Math.sin(theta) * slatRadius;
+      slat.position.z = Math.cos(theta) * slatRadius;
+      slat.position.y = 1.25;
+      slat.rotation.y = theta;
+      slat.castShadow = true;
+      slat.receiveShadow = true;
+      wallGroup.add(slat);
+    }
+
+    // 4. Arched Entrance Portal & Threshold Deck
+    const stepShape = new THREE.Shape();
+    stepShape.moveTo(-0.48, 0);
+    stepShape.lineTo(0.48, 0);
+    stepShape.quadraticCurveTo(0.55, 0.4, 0, 0.48);
+    stepShape.quadraticCurveTo(-0.55, 0.4, -0.48, 0);
+
+    const stepExtrudeSettings = { depth: 0.1, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
+    const stepGeo = new THREE.ExtrudeGeometry(stepShape, stepExtrudeSettings);
+    const stepMesh = new THREE.Mesh(stepGeo, matCedar);
+    stepMesh.rotation.x = Math.PI / 2;
+    stepMesh.position.set(0, 0.35, 1.45);
+    stepMesh.castShadow = true;
+    stepMesh.receiveShadow = true;
+    baseGroup.add(stepMesh);
+
+    const archRadius = 0.48;
+    const archTube = 0.065;
+    const archGeo = new THREE.TorusGeometry(archRadius, archTube, 16, 32, Math.PI);
+    const archMesh = new THREE.Mesh(archGeo, matCedar);
+    archMesh.position.set(0, 1.48, 1.54);
+    archMesh.castShadow = true;
+    wallGroup.add(archMesh);
+
+    const jambGeo = new THREE.CylinderGeometry(archTube, archTube, 1.15, 16);
+    const leftJamb = new THREE.Mesh(jambGeo, matCedar);
+    leftJamb.position.set(-archRadius, 0.90, 1.54);
+    leftJamb.castShadow = true;
+    wallGroup.add(leftJamb);
+
+    const rightJamb = new THREE.Mesh(jambGeo, matCedar);
+    rightJamb.position.set(archRadius, 0.90, 1.54);
+    rightJamb.castShadow = true;
+    wallGroup.add(rightJamb);
+
+    // 5. Brass Porthole Window (Left Side, windowAngle ~ -72 deg)
+    const portholeGroup = new THREE.Group();
+    const winX = Math.sin(windowAngle) * slatRadius;
+    const winZ = Math.cos(windowAngle) * slatRadius;
+    const winY = 1.30;
+    portholeGroup.position.set(winX, winY, winZ);
+    portholeGroup.rotation.y = windowAngle;
+
+    const brassRingGeo = new THREE.TorusGeometry(0.34, 0.045, 16, 32);
+    const brassRingMesh = new THREE.Mesh(brassRingGeo, matBrass);
+    brassRingMesh.castShadow = true;
+    portholeGroup.add(brassRingMesh);
+
+    const glassGeo = new THREE.CircleGeometry(0.32, 32);
+    const glassMesh = new THREE.Mesh(glassGeo, matGlass);
+    portholeGroup.add(glassMesh);
+
+    for (let r = 0; r < 10; r++) {
+      const angle = (r / 10) * Math.PI * 2;
+      const studGeo = new THREE.SphereGeometry(0.022, 8, 8);
+      const stud = new THREE.Mesh(studGeo, matBrass);
+      stud.position.set(Math.cos(angle) * 0.34, Math.sin(angle) * 0.34, 0.03);
+      portholeGroup.add(stud);
+    }
+    wallGroup.add(portholeGroup);
+
+    // 6. Cozy Interior Dog Bed Cushion & Pillow
+    const bedGroup = new THREE.Group();
+    bedGroup.position.set(0, 0.32, 0.1);
+
+    const bolsterGeo = new THREE.TorusGeometry(0.68, 0.22, 16, 36);
+    const bolsterMesh = new THREE.Mesh(bolsterGeo, matCushion);
+    bolsterMesh.rotation.x = Math.PI / 2;
+    bolsterMesh.position.y = 0.18;
+    bolsterMesh.castShadow = true;
+    bolsterMesh.receiveShadow = true;
+    bedGroup.add(bolsterMesh);
+
+    const pillowGeo = new THREE.CylinderGeometry(0.60, 0.65, 0.22, 32);
+    const pillowMesh = new THREE.Mesh(pillowGeo, matCushion);
+    pillowMesh.position.y = 0.13;
+    pillowMesh.receiveShadow = true;
+    bedGroup.add(pillowMesh);
+
+    interiorGroup.add(bedGroup);
+
+    // 7. Iconic Mushroom Toadstool Cap (Roof Dome)
+    const capPoints = [
+      new THREE.Vector2(0.001, 3.55),
+      new THREE.Vector2(0.45, 3.50),
+      new THREE.Vector2(0.95, 3.35),
+      new THREE.Vector2(1.45, 3.05),
+      new THREE.Vector2(1.85, 2.65),
+      new THREE.Vector2(2.08, 2.30),
+      new THREE.Vector2(2.04, 2.18),
+      new THREE.Vector2(1.78, 2.15),
+      new THREE.Vector2(1.45, 2.22),
+      new THREE.Vector2(0.001, 2.25)
+    ];
+
+    const capGeo = new THREE.LatheGeometry(capPoints, 64);
+    capGeo.computeVertexNormals();
+    const capMesh = new THREE.Mesh(capGeo, matCap);
+    capMesh.castShadow = true;
+    capMesh.receiveShadow = true;
+    roofGroup.add(capMesh);
+
+    // White 3D Tactile Discs on Mushroom Cap
+    const spotsData = [
+      { pos: [0, 3.56, 0], rot: [0, 0, 0], scale: [0.38, 0.05, 0.38] },
+      { pos: [0.72, 3.38, 0.40], rot: [-0.35, 0.5, 0], scale: [0.28, 0.04, 0.28] },
+      { pos: [-0.68, 3.39, 0.45], rot: [-0.38, -0.5, 0], scale: [0.26, 0.04, 0.26] },
+      { pos: [0.0, 3.42, -0.82], rot: [0.45, 0, 0], scale: [0.30, 0.04, 0.30] },
+      { pos: [0.85, 3.32, -0.40], rot: [0.3, 1.2, 0], scale: [0.25, 0.04, 0.25] },
+      { pos: [-0.85, 3.32, -0.38], rot: [0.3, -1.2, 0], scale: [0.25, 0.04, 0.25] },
+      { pos: [1.38, 2.92, 0.65], rot: [-0.75, 0.8, -0.2], scale: [0.26, 0.04, 0.26] },
+      { pos: [-1.35, 2.93, 0.70], rot: [-0.75, -0.8, 0.2], scale: [0.27, 0.04, 0.27] },
+      { pos: [0.0, 2.98, 1.55], rot: [-0.85, 0, 0], scale: [0.29, 0.04, 0.29] },
+      { pos: [-1.45, 2.90, -0.55], rot: [0.7, -1.4, 0], scale: [0.24, 0.04, 0.24] },
+      { pos: [1.45, 2.90, -0.55], rot: [0.7, 1.4, 0], scale: [0.24, 0.04, 0.24] },
+      { pos: [-0.70, 2.96, -1.35], rot: [0.85, -0.5, 0], scale: [0.25, 0.04, 0.25] },
+      { pos: [0.70, 2.96, -1.35], rot: [0.85, 0.5, 0], scale: [0.25, 0.04, 0.25] },
+      { pos: [1.88, 2.45, 0.55], rot: [-1.15, 1.1, -0.3], scale: [0.19, 0.03, 0.19] },
+      { pos: [-1.88, 2.45, 0.55], rot: [-1.15, -1.1, 0.3], scale: [0.19, 0.03, 0.19] },
+      { pos: [0.65, 2.46, 1.85], rot: [-1.2, 0.35, 0], scale: [0.21, 0.03, 0.21] },
+      { pos: [-0.65, 2.46, 1.85], rot: [-1.2, -0.35, 0], scale: [0.21, 0.03, 0.21] },
+      { pos: [1.82, 2.46, -0.75], rot: [1.15, 1.2, 0], scale: [0.18, 0.03, 0.18] },
+      { pos: [-1.82, 2.46, -0.75], rot: [1.15, -1.2, 0], scale: [0.18, 0.03, 0.18] },
+    ];
+
+    const spotGeo = new THREE.CylinderGeometry(1, 1, 1, 32);
+    spotsData.forEach(s => {
+      const spotMesh = new THREE.Mesh(spotGeo, matSpot);
+      spotMesh.position.set(s.pos[0], s.pos[1], s.pos[2]);
+      spotMesh.rotation.set(s.rot[0], s.rot[1], s.rot[2]);
+      spotMesh.scale.set(s.scale[0], s.scale[1], s.scale[2]);
+      spotMesh.castShadow = true;
+      roofGroup.add(spotMesh);
+    });
+
+    // 8. Ground Garden Pedestal & Stepping Stones
+    const groundGeo = new THREE.CylinderGeometry(4.2, 4.4, 0.35, 48);
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x3d3126,
+      roughness: 0.95,
+      metalness: 0.0,
+    });
+    const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    groundMesh.position.y = -0.18;
+    groundMesh.receiveShadow = true;
+    scene.add(groundMesh);
+
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x8a9296, roughness: 0.8 });
+    const stones = [
+      { x: 0.9, z: 2.1, r: 0.36, ry: 0.4 },
+      { x: 1.6, z: 2.4, r: 0.42, ry: 1.1 },
+      { x: 0.2, z: 2.5, r: 0.32, ry: -0.5 },
+      { x: -0.7, z: 2.4, r: 0.35, ry: 0.8 },
+    ];
+    stones.forEach(st => {
+      const stoneGeo = new THREE.CylinderGeometry(st.r, st.r * 1.08, 0.06, 16);
+      const stone = new THREE.Mesh(stoneGeo, stoneMat);
+      stone.position.set(st.x, 0.02, st.z);
+      stone.rotation.y = st.ry;
+      stone.scale.set(1.1, 1.0, 0.8);
+      stone.receiveShadow = true;
+      scene.add(stone);
+    });
+
+    const foliageMat = new THREE.MeshStandardMaterial({ color: 0x4a7a3b, roughness: 0.6, side: THREE.DoubleSide });
+    const fernPositions = [
+      { x: -2.3, z: 1.3, scale: 0.8 },
+      { x: 2.2, z: 1.2, scale: 0.9 },
+      { x: -2.2, z: -1.4, scale: 0.85 },
+      { x: 2.4, z: -1.2, scale: 1.0 },
+      { x: 0.0, z: -2.5, scale: 1.1 }
+    ];
+    fernPositions.forEach(fp => {
+      const plantGroup = new THREE.Group();
+      plantGroup.position.set(fp.x, 0.0, fp.z);
+      for (let f = 0; f < 7; f++) {
+        const leafGeo = new THREE.ConeGeometry(0.18 * fp.scale, 0.85 * fp.scale, 5);
+        const leaf = new THREE.Mesh(leafGeo, foliageMat);
+        leaf.rotation.y = (f / 7) * Math.PI * 2;
+        leaf.rotation.x = 0.55;
+        leaf.position.y = 0.35 * fp.scale;
+        plantGroup.add(leaf);
+      }
+      scene.add(plantGroup);
+    });
+
+    /* =========================================================================
+       BLUEPRINT TECHNICAL DIMENSION LINES
+       ========================================================================= */
+    function createBlueprintDimensionLines() {
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, linewidth: 2 });
+
+      // Wall Height (3'-6")
+      const wallDimPts = [
+        new THREE.Vector3(2.3, 0.28, 0),
+        new THREE.Vector3(2.5, 0.28, 0),
+        new THREE.Vector3(2.5, 2.23, 0),
+        new THREE.Vector3(2.3, 2.23, 0)
+      ];
+      const wallDimLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(wallDimPts), lineMat);
+      blueprintLinesGroup.add(wallDimLine);
+
+      // Dome Dia (4'-0")
+      const domeDimPts = [
+        new THREE.Vector3(-2.1, 3.75, 0),
+        new THREE.Vector3(-2.1, 3.85, 0),
+        new THREE.Vector3(2.1, 3.85, 0),
+        new THREE.Vector3(2.1, 3.75, 0)
+      ];
+      const domeDimLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(domeDimPts), lineMat);
+      blueprintLinesGroup.add(domeDimLine);
+
+      // Base Dia (3'-6")
+      const baseDimPts = [
+        new THREE.Vector3(-1.8, -0.05, 0),
+        new THREE.Vector3(-1.8, -0.18, 0),
+        new THREE.Vector3(1.8, -0.18, 0),
+        new THREE.Vector3(1.8, -0.05, 0)
+      ];
+      const baseDimLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(baseDimPts), lineMat);
+      blueprintLinesGroup.add(baseDimLine);
+
+      blueprintLinesGroup.visible = false;
+    }
+    createBlueprintDimensionLines();
+
+    /* =========================================================================
+       VIEW MODES MANAGEMENT
+       ========================================================================= */
+    let currentMode = 'realistic';
+
+    function setViewMode(mode) {
+      currentMode = mode;
+      playSound('blueprint');
+
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`mode-${mode}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const markers = document.querySelectorAll('.annotation-marker');
+
+      if (mode === 'blueprint') {
+        scene.background.set('#0b2238');
+        scene.fog.color.set('#0b2238');
+        blueprintLinesGroup.visible = true;
+
+        applyBlueprintMaterials(houseGroup);
+        markers.forEach(m => m.classList.add('active'));
+
+        groundMesh.visible = false;
+        hemiLight.intensity = 0.3;
+        dirLight.intensity = 0.5;
+        interiorLight.color.set('#00e5ff');
+      } else if (mode === 'xray') {
+        scene.background.set('#141922');
+        scene.fog.color.set('#141922');
+        blueprintLinesGroup.visible = false;
+
+        applyXRayMaterials(houseGroup);
+        markers.forEach(m => m.classList.add('active'));
+
+        groundMesh.visible = true;
+        hemiLight.intensity = 0.6;
+        dirLight.intensity = 1.0;
+        interiorLight.color.set('#ffaa44');
+      } else { // realistic
+        scene.background.set('#14181f');
+        scene.fog.color.set('#14181f');
+        blueprintLinesGroup.visible = false;
+
+        restoreRealisticMaterials();
+        markers.forEach(m => m.classList.remove('active'));
+
+        groundMesh.visible = true;
+        hemiLight.intensity = 0.7;
+        dirLight.intensity = 1.6;
+        interiorLight.color.set('#ffaa44');
+      }
+    }
+
+    function applyBlueprintMaterials(group) {
+      group.traverse(child => {
+        if (child.isMesh && child !== groundMesh) {
+          if (!child.userData.origMat) child.userData.origMat = child.material;
+          child.material = matBlueprintWire;
+        }
+      });
+    }
+
+    function applyXRayMaterials(group) {
+      group.traverse(child => {
+        if (child.isMesh && child !== groundMesh) {
+          if (!child.userData.origMat) child.userData.origMat = child.material;
+          const origCol = child.userData.origMat.color ? child.userData.origMat.color.getHex() : 0xcccccc;
+          child.material = new THREE.MeshStandardMaterial({
+            color: origCol,
+            transparent: true,
+            opacity: child.parent === wallGroup || child.parent === roofGroup ? 0.32 : 0.85,
+            roughness: 0.3,
+            wireframe: false,
+          });
+        }
+      });
+    }
+
+    function restoreRealisticMaterials() {
+      houseGroup.traverse(child => {
+        if (child.isMesh && child.userData.origMat) {
+          child.material = child.userData.origMat;
+        }
+      });
+    }
+
+    /* =========================================================================
+       CAMERA PRESET POSITIONS
+       ========================================================================= */
+    const presets = {
+      front: { pos: [0, 1.4, 4.4], target: [0, 1.2, 0] },
+      porthole: { pos: [-3.8, 1.5, 1.6], target: [-1.4, 1.3, 0] },
+      iso: { pos: [3.8, 2.5, 4.8], target: [0, 1.4, 0] },
+      top: { pos: [0.01, 5.6, 0.01], target: [0, 1.5, 0] },
+      interior: { pos: [0, 1.0, 1.8], target: [0, 0.7, 0] },
+      elevation: { pos: [0, 1.6, 5.5], target: [0, 1.6, 0] }
+    };
+
+    function transitionCamera(presetKey) {
+      const p = presets[presetKey];
+      if (!p) return;
+
+      playSound('swoosh');
+
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`.btn-preset[data-view="${presetKey}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      gsap.to(camera.position, {
+        x: p.pos[0],
+        y: p.pos[1],
+        z: p.pos[2],
+        duration: 1.1,
+        ease: 'power3.inOut'
+      });
+
+      gsap.to(controls.target, {
+        x: p.target[0],
+        y: p.target[1],
+        z: p.target[2],
+        duration: 1.1,
+        ease: 'power3.inOut'
+      });
+    }
+
+    /* =========================================================================
+       EXPLODED ROOF VIEW
+       ========================================================================= */
+    const explodeSlider = document.getElementById('explode-slider');
+    const explodeValText = document.getElementById('explode-val');
+    const btnExplodeToggle = document.getElementById('btn-explode-toggle');
+    const explodeToggleText = document.getElementById('explode-toggle-text');
+
+    function updateExplode(val) {
+      explodeSlider.value = Math.round(val * 100);
+      explodeValText.textContent = `${Math.round(val * 100)}%`;
+      roofGroup.position.y = val * 1.85;
+      interiorGroup.position.y = val * 0.35;
+      explodeToggleText.textContent = val > 0.5 ? '지붕 닫기' : '지붕 들어올리기';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value) / 100;
+      updateExplode(val);
+    });
+
+    btnExplodeToggle.addEventListener('click', () => {
+      playSound('click');
+      const targetVal = parseFloat(explodeSlider.value) > 10 ? 0 : 1;
+      gsap.to({ v: parseFloat(explodeSlider.value) / 100 }, {
+        v: targetVal,
+        duration: 0.8,
+        ease: 'power2.inOut',
+        onUpdate: function() {
+          updateExplode(this.targets()[0].v);
+        }
+      });
+    });
+
+    /* =========================================================================
+       LIGHTING ATMOSPHERE
+       ========================================================================= */
+    document.querySelectorAll('.env-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        setLightingEnvironment(btn.dataset.env);
+      });
+    });
+
+    function setLightingEnvironment(env) {
+      playSound('click');
+      if (env === 'day') {
+        gsap.to(dirLight.color, { r: 1.0, g: 0.98, b: 0.93, duration: 0.8 });
+        gsap.to(dirLight, { intensity: 1.6, duration: 0.8 });
+        gsap.to(hemiLight.color, { r: 1.0, g: 0.96, b: 0.9, duration: 0.8 });
+        gsap.to(scene.background, { r: 0.08, g: 0.10, b: 0.13, duration: 0.8 });
+        interiorLight.intensity = 2.2;
+      } else if (env === 'sunset') {
+        gsap.to(dirLight.color, { r: 1.0, g: 0.55, b: 0.25, duration: 0.8 });
+        gsap.to(dirLight, { intensity: 1.8, duration: 0.8 });
+        gsap.to(hemiLight.color, { r: 0.95, g: 0.5, b: 0.35, duration: 0.8 });
+        gsap.to(scene.background, { r: 0.14, g: 0.07, b: 0.05, duration: 0.8 });
+        interiorLight.intensity = 3.0;
+      } else if (env === 'night') {
+        gsap.to(dirLight.color, { r: 0.3, g: 0.45, b: 0.8, duration: 0.8 });
+        gsap.to(dirLight, { intensity: 0.4, duration: 0.8 });
+        gsap.to(hemiLight.color, { r: 0.15, g: 0.25, b: 0.4, duration: 0.8 });
+        gsap.to(scene.background, { r: 0.03, g: 0.05, b: 0.08, duration: 0.8 });
+        interiorLight.intensity = 4.5;
+      }
+    }
+
+    /* =========================================================================
+       3D ANNOTATION PROJECTOR
+       ========================================================================= */
+    const annotationPoints = {
+      'annotation-dome': new THREE.Vector3(0, 3.4, 0),
+      'annotation-wall': new THREE.Vector3(1.6, 1.4, 0),
+      'annotation-window': new THREE.Vector3(winX, winY, winZ),
+      'annotation-insulation': new THREE.Vector3(-1.45, 1.8, 0),
+      'annotation-base': new THREE.Vector3(0, 0.15, 1.8)
+    };
+
+    function updateAnnotations() {
+      if (currentMode !== 'blueprint' && currentMode !== 'xray') return;
+
+      const tempV = new THREE.Vector3();
+      for (const id in annotationPoints) {
+        const elem = document.getElementById(id);
+        if (!elem) continue;
+
+        tempV.copy(annotationPoints[id]);
+        if (id === 'annotation-dome') tempV.y += roofGroup.position.y;
+
+        tempV.project(camera);
+
+        if (tempV.z > 1) {
+          elem.style.display = 'none';
+          continue;
+        }
+
+        const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+
+        elem.style.left = `${x}px`;
+        elem.style.top = `${y}px`;
+        elem.style.display = 'flex';
+      }
+    }
+
+    /* =========================================================================
+       AUTO TURNTABLE (360 Rotation)
+       ========================================================================= */
+    let turntableActive = false;
+    const btnTurntable = document.getElementById('btn-turntable');
+
+    btnTurntable.addEventListener('click', () => {
+      turntableActive = !turntableActive;
+      controls.autoRotate = turntableActive;
+      controls.autoRotateSpeed = 2.0;
+      btnTurntable.classList.toggle('active', turntableActive);
+      playSound('click');
+    });
+
+    /* =========================================================================
+       SNAPSHOT DOWNLOAD
+       ========================================================================= */
+    document.getElementById('btn-snapshot').addEventListener('click', () => {
+      playSound('click');
+      renderer.render(scene, camera);
+      const dataURL = renderer.domElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = `mushroom_doghouse_${currentMode}_${Date.now()}.png`;
+      a.click();
+    });
+
+    /* =========================================================================
+       SOUND EFFECTS TOGGLE
+       ========================================================================= */
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      btnSound.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
+      btnSound.style.opacity = soundEnabled ? '1.0' : '0.5';
+    });
+
+    /* =========================================================================
+       COMPARISON MODAL & SPLIT SLIDER (Clip-path)
+       ========================================================================= */
+    const compModal = document.getElementById('comparison-modal');
+    const btnSplitModal = document.getElementById('btn-split-modal');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const splitContainer = document.getElementById('tab-split');
+    const splitTopLayer = document.getElementById('split-top-layer');
+    const splitHandleLine = document.getElementById('split-handle-line');
+
+    function openModal() {
+      compModal.classList.add('show');
+      playSound('click');
+    }
+    function closeModal() {
+      compModal.classList.remove('show');
+      playSound('click');
+    }
+
+    btnSplitModal.addEventListener('click', openModal);
+    modalCloseBtn.addEventListener('click', closeModal);
+    compModal.addEventListener('click', (e) => {
+      if (e.target === compModal) closeModal();
+    });
+
+    // Reference Card Clicks
+    document.getElementById('card-render').addEventListener('click', () => {
+      openModal();
+      switchModalTab('render-full');
+    });
+    document.getElementById('card-blueprint').addEventListener('click', () => {
+      openModal();
+      switchModalTab('blueprint-full');
+    });
+
+    // Modal Tabs
+    function switchModalTab(tabKey) {
+      document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabKey);
+      });
+      document.getElementById('tab-split').style.display = (tabKey === 'split') ? 'block' : 'none';
+      document.getElementById('tab-blueprint-full').classList.toggle('active', tabKey === 'blueprint-full');
+      document.getElementById('tab-render-full').classList.toggle('active', tabKey === 'render-full');
+      playSound('click');
+    }
+
+    document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchModalTab(btn.dataset.tab));
+    });
+
+    // Draggable Split Divider
+    let isDraggingSplit = false;
+
+    function handleSplitMove(e) {
+      if (!isDraggingSplit) return;
+      const rect = splitContainer.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      let pos = (clientX - rect.left) / rect.width;
+      pos = Math.max(0.03, Math.min(0.97, pos));
+
+      const pct = pos * 100;
+      splitTopLayer.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      splitHandleLine.style.left = `${pct}%`;
+    }
+
+    splitHandleLine.addEventListener('mousedown', () => isDraggingSplit = true);
+    splitHandleLine.addEventListener('touchstart', () => isDraggingSplit = true);
+    window.addEventListener('mouseup', () => isDraggingSplit = false);
+    window.addEventListener('touchend', () => isDraggingSplit = false);
+    window.addEventListener('mousemove', handleSplitMove);
+    window.addEventListener('touchmove', handleSplitMove);
+
+    /* =========================================================================
+       EVENT LISTENERS
+       ========================================================================= */
+    document.getElementById('mode-realistic').addEventListener('click', () => setViewMode('realistic'));
+    document.getElementById('mode-blueprint').addEventListener('click', () => setViewMode('blueprint'));
+    document.getElementById('mode-xray').addEventListener('click', () => setViewMode('xray'));
+
+    document.querySelectorAll('.btn-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        transitionCamera(btn.dataset.view);
+      });
+    });
+
+    // 3D Tilt on Hover for Reference Cards
+    document.querySelectorAll('.thumb-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        card.style.transform = `perspective(600px) rotateY(${x * 0.08}deg) rotateX(${-y * 0.08}deg) scale(1.03)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) scale(1.0)';
+      });
+    });
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* =========================================================================
+       ANIMATION LOOP
+       ========================================================================= */
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      updateAnnotations();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
