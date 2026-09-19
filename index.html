@@ -185,14 +185,20 @@
     }
 
     /* Floating View Mode Bar (Top Right) */
+    /* Floating View Mode & Lighting Bar (Top Right) */
     .mode-bar {
       position: absolute;
       top: 86px;
       right: 20px;
-      padding: 6px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-radius: 12px;
+    }
+    .mode-row {
       display: flex;
       gap: 6px;
-      border-radius: 12px;
     }
     .mode-btn {
       padding: 8px 14px;
@@ -222,6 +228,57 @@
       color: var(--blueprint-cyan);
       border-color: var(--blueprint-cyan);
       box-shadow: 0 0 12px var(--blueprint-glow);
+    }
+
+    /* Lighting Atmosphere Quick Bar */
+    .mode-env-row {
+      display: flex;
+      gap: 5px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .mode-env-row .env-btn {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .mode-env-row .env-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .mode-env-row .env-btn.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .mode-env-row .env-btn[data-env="day"].active {
+      background: rgba(255, 180, 0, 0.2);
+      color: #ffd15c;
+      border-color: rgba(255, 180, 0, 0.4);
+      box-shadow: 0 0 10px rgba(255, 180, 0, 0.25);
+    }
+    .mode-env-row .env-btn[data-env="sunset"].active {
+      background: rgba(255, 107, 53, 0.22);
+      color: #ff9066;
+      border-color: rgba(255, 107, 53, 0.45);
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    .mode-env-row .env-btn[data-env="night"].active {
+      background: rgba(79, 134, 247, 0.22);
+      color: #92b8ff;
+      border-color: rgba(79, 134, 247, 0.45);
+      box-shadow: 0 0 10px rgba(79, 134, 247, 0.3);
     }
 
     /* Left Control Sidebar: Camera Presets & Exploded View */
@@ -791,41 +848,74 @@
         display: none; /* Hide text, keep crisp large icons for mobile */
       }
 
-      /* High-Readability Mode Bar */
+      /* High-Readability Mode & Atmosphere Bar for Mobile */
       .mode-bar {
-        top: 68px;
-        right: 12px;
-        padding: 5px;
+        top: 66px;
+        left: 10px;
+        right: 10px;
+        padding: 6px;
         gap: 5px;
-        border-radius: 12px;
+        border-radius: 14px;
         background: rgba(14, 18, 24, 0.94);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+      }
+      .mode-row {
+        display: flex;
+        gap: 5px;
+        width: 100%;
       }
       .mode-btn {
-        padding: 7px 11px;
-        font-size: 12.5px;
+        flex: 1;
+        justify-content: center;
+        padding: 7px 4px;
+        font-size: 12px;
         font-weight: 700;
-        gap: 6px;
+        gap: 5px;
         border-radius: 8px;
+        white-space: nowrap;
       }
       .mode-btn i {
         font-size: 13px;
       }
       .mode-btn span {
-        font-size: 12.5px;
+        font-size: 12px;
         font-weight: 700;
       }
 
-      /* Drag hint badge */
-      #drag-hint {
-        top: 114px;
-        padding: 8px 18px;
+      .mode-env-row {
+        display: flex;
+        gap: 5px;
+        width: 100%;
+        margin-top: 2px;
+        padding-top: 5px;
+      }
+      .mode-env-row .env-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 7px 4px;
         font-size: 12px;
+        font-weight: 700;
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .mode-env-row .env-btn i {
+        font-size: 13px;
+      }
+      .mode-env-row .env-btn span {
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      /* Drag hint badge positioned beneath the 2-row mode-bar */
+      #drag-hint {
+        top: 156px;
+        padding: 7px 16px;
+        font-size: 11.5px;
         font-weight: 600;
-        gap: 8px;
+        gap: 6px;
         width: max-content;
         max-width: 90vw;
         border-radius: 24px;
@@ -1164,12 +1254,26 @@
         font-size: 16px;
       }
       .mode-btn {
-        padding: 6px 9px;
-        font-size: 11.5px;
+        padding: 6px 2px;
+        font-size: 11px;
+        gap: 3px;
+      }
+      .mode-btn span {
+        font-size: 11px;
+      }
+      .mode-env-row .env-btn {
+        padding: 6px 2px;
+        font-size: 11px;
+        gap: 3px;
+      }
+      .mode-env-row .env-btn span {
+        font-size: 11px;
       }
       .mode-bar {
         gap: 3px;
-        top: 64px;
+        top: 62px;
+        left: 8px;
+        right: 8px;
       }
     }
   </style>
@@ -1216,20 +1320,39 @@
     </div>
   </header>
 
-  <!-- Top Right Mode Bar -->
+  <!-- Top Right Mode Bar & Direct Lighting Environment -->
   <div class="mode-bar glass-panel">
-    <button class="mode-btn active" id="mode-realistic" title="따뜻한 정원 조명과 질감">
-      <i class="fa-solid fa-cube"></i>
-      <span>실사 3D 렌더</span>
-    </button>
-    <button class="mode-btn blueprint-mode" id="mode-blueprint" title="청사진 및 치수선 와이어프레임">
-      <i class="fa-solid fa-compass-drafting"></i>
-      <span>청사진 모드</span>
-    </button>
-    <button class="mode-btn" id="mode-xray" title="단면 투시 및 내부 구조">
-      <i class="fa-solid fa-layer-group"></i>
-      <span>단면/투시</span>
-    </button>
+    <!-- Row 1: 3D Visual View Modes -->
+    <div class="mode-row">
+      <button class="mode-btn active" id="mode-realistic" title="따뜻한 정원 조명과 질감">
+        <i class="fa-solid fa-cube"></i>
+        <span>실사 3D 렌더</span>
+      </button>
+      <button class="mode-btn blueprint-mode" id="mode-blueprint" title="청사진 및 치수선 와이어프레임">
+        <i class="fa-solid fa-compass-drafting"></i>
+        <span>청사진 모드</span>
+      </button>
+      <button class="mode-btn" id="mode-xray" title="단면 투시 및 내부 구조">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>단면/투시</span>
+      </button>
+    </div>
+
+    <!-- Row 2: Atmosphere / Time-of-Day Quick Switcher -->
+    <div class="mode-env-row">
+      <button class="env-btn active" data-env="day" title="맑고 화사한 낮 풍경">
+        <i class="fa-solid fa-sun"></i>
+        <span>낮</span>
+      </button>
+      <button class="env-btn" data-env="sunset" title="따스한 붉은 노을 풍경">
+        <i class="fa-solid fa-cloud-sun"></i>
+        <span>노을</span>
+      </button>
+      <button class="env-btn" data-env="night" title="달빛과 별무리 야경 (반딧불이)">
+        <i class="fa-solid fa-moon"></i>
+        <span>밤 (달빛)</span>
+      </button>
+    </div>
   </div>
 
   <!-- Left Sidebar: Controls & Presets -->
