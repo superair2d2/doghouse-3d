@@ -434,6 +434,65 @@
       border-color: rgba(255, 255, 255, 0.3);
     }
 
+    /* Puppy Behavior Mode Controls */
+    .dog-mode-row {
+      display: flex;
+      gap: 6px;
+    }
+    .dog-btn {
+      flex: 1;
+      padding: 7px 4px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .dog-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .dog-btn.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .dog-btn[data-dog="play"].active {
+      background: rgba(255, 107, 53, 0.26);
+      color: #ff9066;
+      border-color: rgba(255, 107, 53, 0.5);
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.25);
+    }
+    .dog-btn[data-dog="rest"].active {
+      background: rgba(56, 189, 248, 0.24);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+    }
+    .dog-btn[data-dog="sleep"].active {
+      background: rgba(168, 85, 247, 0.25);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+    }
+    .dog-mode-grid .dog-btn {
+      padding: 12px 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 10px;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dog-mode-grid .dog-btn i {
+      font-size: 17px;
+    }
+
     /* Right Panel: Source Images & Comparison */
     .sidebar-right {
       position: absolute;
@@ -1411,6 +1470,17 @@
       <button class="env-btn" data-env="sunset"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
       <button class="env-btn" data-env="night"><i class="fa-solid fa-moon"></i> 밤</button>
     </div>
+
+    <!-- Puppy Behavior Mode -->
+    <div class="panel-title" style="margin-top: 4px;">
+      <span>강아지 행동 (Puppy)</span>
+      <i class="fa-solid fa-dog"></i>
+    </div>
+    <div class="dog-mode-row">
+      <button class="dog-btn" data-dog="play" title="집 주변을 뛰어다니며 놀기"><i class="fa-solid fa-person-running"></i> 뛰어놀기</button>
+      <button class="dog-btn active" data-dog="rest" title="문 앞에서 편안하게 쉬기"><i class="fa-solid fa-couch"></i> 휴식</button>
+      <button class="dog-btn" data-dog="sleep" title="집 안 방석 위에서 잠자기"><i class="fa-solid fa-bed"></i> 수면</button>
+    </div>
   </aside>
 
   <!-- Right Sidebar: Source Reference Cards -->
@@ -1477,9 +1547,9 @@
       <i class="fa-solid fa-arrow-up-from-bracket"></i>
       <span>지붕분해</span>
     </button>
-    <button class="dock-btn" data-dock="lighting" id="dock-btn-lighting" title="조명 분위기">
-      <i class="fa-solid fa-sun"></i>
-      <span>조명환경</span>
+    <button class="dock-btn" data-dock="dog" id="dock-btn-dog" title="강아지 행동 모드">
+      <i class="fa-solid fa-dog"></i>
+      <span>강아지</span>
     </button>
     <button class="dock-btn" data-dock="specs" id="dock-btn-specs" title="건축 상세 제원">
       <i class="fa-solid fa-ruler-combined"></i>
@@ -1554,16 +1624,29 @@
       </div>
     </div>
 
-    <!-- 3. Lighting Tab Content -->
-    <div class="sheet-tab-content" id="sheet-tab-lighting" style="display:none;">
+    <!-- 3. Dog Behavior Tab Content -->
+    <div class="sheet-tab-content" id="sheet-tab-dog" style="display:none;">
       <div class="sheet-section-title">
-        <i class="fa-solid fa-sun"></i>
-        <span>조명 분위기 환경</span>
+        <i class="fa-solid fa-dog"></i>
+        <span>강아지 행동 모드 (Puppy Mode)</span>
       </div>
-      <div class="env-row" style="margin-top: 8px;">
-        <button class="env-btn active" data-env="day" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-sun"></i> 낮</button>
-        <button class="env-btn" data-env="sunset" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
-        <button class="env-btn" data-env="night" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-moon"></i> 밤</button>
+      <div class="dog-mode-grid" style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <button class="dog-btn" data-dog="play" title="집 주변을 뛰어다니며 놀기">
+          <i class="fa-solid fa-person-running"></i>
+          <span>뛰어놀기</span>
+        </button>
+        <button class="dog-btn active" data-dog="rest" title="문 앞에서 편안하게 쉬기">
+          <i class="fa-solid fa-couch"></i>
+          <span>휴식</span>
+        </button>
+        <button class="dog-btn" data-dog="sleep" title="집 안 방석 위에서 잠자기">
+          <i class="fa-solid fa-bed"></i>
+          <span>수면</span>
+        </button>
+      </div>
+      <div class="dog-status-card" id="mobile-dog-status-card" style="margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); font-size: 12.5px; color: #cbd5e1; line-height: 1.5; display: flex; align-items: center; gap: 9px;">
+        <i class="fa-solid fa-paw" style="color: var(--accent-gold); font-size: 17px; flex-shrink: 0;"></i>
+        <span id="mobile-dog-status-text">강아지가 출입문 앞에서 꼬리를 살랑살랑 흔들며 편안하게 쉬고 있습니다.</span>
       </div>
     </div>
 
@@ -1954,6 +2037,71 @@
         birdMasterGain.gain.setValueAtTime(birdMasterGain.gain.value, now);
         birdMasterGain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
       }
+    }
+
+    /* =========================================================================
+       PROCEDURAL PUPPY SOUNDS (Web Audio API)
+       ========================================================================= */
+    function playPuppyBarkSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+      for (let i = 0; i < 2; i++) {
+        const t = now + i * 0.13;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(640 - i * 50, t);
+        osc.frequency.exponentialRampToValueAtTime(320 - i * 40, t + 0.08);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(650, t);
+        filter.Q.setValueAtTime(2.2, t);
+
+        gain.gain.setValueAtTime(0.001, t);
+        gain.gain.linearRampToValueAtTime(0.18, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.085);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.09);
+      }
+    }
+
+    function playPuppySleepSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, idx) => {
+        const t = now + idx * 0.12;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.linearRampToValueAtTime(0.09, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.48);
+      });
     }
 
     /* =========================================================================
@@ -2905,8 +3053,12 @@
     capMesh.receiveShadow = true;
     roofGroup.add(capMesh);
 
-    // 8. Adorable White Puppy (Sitting happily in front of the doghouse entrance)
-    const puppyGroup = new THREE.Group();
+    // 8. Adorable White Puppy (Interactive Behavior Modes: Play, Rest, Sleep)
+    let puppyGroup, puppyBody, puppyHeadGroup, puppySnout, puppyNose, puppyTongue;
+    let leftEye, rightEye, leftCatch, rightCatch, leftEar, rightEar;
+    let leftLeg, rightLeg, leftPaw, rightPaw, leftHind, rightHind, puppyTailGroup;
+
+    puppyGroup = new THREE.Group();
     // 문 앞 디딤판 오른쪽 잔디 (x: 0.65, z: 1.88), 집에서 나와 방문자를 반갑게 맞이하는 방향
     puppyGroup.position.set(0.68, 0.02, 1.88);
     puppyGroup.rotation.y = -Math.PI * 0.22;
@@ -2914,7 +3066,7 @@
 
     // Plump Sitting Body
     const puppyBodyGeo = new THREE.SphereGeometry(0.25, 24, 24);
-    const puppyBody = new THREE.Mesh(puppyBodyGeo, matPuppyFur);
+    puppyBody = new THREE.Mesh(puppyBodyGeo, matPuppyFur);
     puppyBody.scale.set(0.96, 1.15, 0.92);
     puppyBody.position.set(0, 0.28, 0);
     puppyBody.rotation.x = 0.15;
@@ -2923,7 +3075,7 @@
     puppyGroup.add(puppyBody);
 
     // Head Group (for interactive / idle animation)
-    const puppyHeadGroup = new THREE.Group();
+    puppyHeadGroup = new THREE.Group();
     puppyHeadGroup.position.set(0, 0.52, 0.07);
     puppyGroup.add(puppyHeadGroup);
 
@@ -2936,7 +3088,7 @@
 
     // Snout / Muzzle
     const puppySnoutGeo = new THREE.SphereGeometry(0.09, 16, 16);
-    const puppySnout = new THREE.Mesh(puppySnoutGeo, matPuppyFur);
+    puppySnout = new THREE.Mesh(puppySnoutGeo, matPuppyFur);
     puppySnout.scale.set(1.05, 0.88, 1.25);
     puppySnout.position.set(0, -0.04, 0.16);
     puppySnout.castShadow = true;
@@ -2944,14 +3096,14 @@
 
     // Glossy Black Nose
     const puppyNoseGeo = new THREE.SphereGeometry(0.032, 16, 16);
-    const puppyNose = new THREE.Mesh(puppyNoseGeo, matPuppyNose);
+    puppyNose = new THREE.Mesh(puppyNoseGeo, matPuppyNose);
     puppyNose.scale.set(1.15, 0.85, 0.9);
     puppyNose.position.set(0, -0.01, 0.265);
     puppyHeadGroup.add(puppyNose);
 
     // Cute Little Tongue
     const puppyTongueGeo = new THREE.SphereGeometry(0.026, 12, 12);
-    const puppyTongue = new THREE.Mesh(puppyTongueGeo, matPuppyTongue);
+    puppyTongue = new THREE.Mesh(puppyTongueGeo, matPuppyTongue);
     puppyTongue.scale.set(0.85, 0.4, 1.4);
     puppyTongue.position.set(0, -0.065, 0.23);
     puppyTongue.rotation.x = 0.2;
@@ -2961,16 +3113,16 @@
     const puppyEyeGeo = new THREE.SphereGeometry(0.035, 16, 16);
     const catchlightGeo = new THREE.SphereGeometry(0.011, 8, 8);
 
-    const leftEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
+    leftEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
     leftEye.position.set(-0.08, 0.04, 0.18);
-    const leftCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
+    leftCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
     leftCatch.position.set(-0.07, 0.055, 0.21);
     puppyHeadGroup.add(leftEye);
     puppyHeadGroup.add(leftCatch);
 
-    const rightEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
+    rightEye = new THREE.Mesh(puppyEyeGeo, matPuppyEye);
     rightEye.position.set(0.08, 0.04, 0.18);
-    const rightCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
+    rightCatch = new THREE.Mesh(catchlightGeo, matPuppyCatchlight);
     rightCatch.position.set(0.09, 0.055, 0.21);
     puppyHeadGroup.add(rightEye);
     puppyHeadGroup.add(rightCatch);
@@ -2979,13 +3131,13 @@
     const earGeo = new THREE.SphereGeometry(0.12, 16, 16);
     earGeo.scale(0.65, 1.3, 0.7);
 
-    const leftEar = new THREE.Mesh(earGeo, matPuppyFur);
+    leftEar = new THREE.Mesh(earGeo, matPuppyFur);
     leftEar.position.set(-0.19, 0.03, -0.02);
     leftEar.rotation.set(0.2, 0, 0.42);
     leftEar.castShadow = true;
     puppyHeadGroup.add(leftEar);
 
-    const rightEar = new THREE.Mesh(earGeo, matPuppyFur);
+    rightEar = new THREE.Mesh(earGeo, matPuppyFur);
     rightEar.position.set(0.19, 0.03, -0.02);
     rightEar.rotation.set(0.2, 0, -0.42);
     rightEar.castShadow = true;
@@ -3011,24 +3163,24 @@
     const pawGeo = new THREE.SphereGeometry(0.052, 16, 16);
     pawGeo.scale(1.0, 0.6, 1.2);
 
-    const leftLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    leftLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
     leftLeg.position.set(-0.085, 0.12, 0.12);
     leftLeg.rotation.x = -0.08;
     leftLeg.castShadow = true;
     puppyGroup.add(leftLeg);
 
-    const leftPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    leftPaw = new THREE.Mesh(pawGeo, matPuppyFur);
     leftPaw.position.set(-0.085, 0.03, 0.15);
     leftPaw.castShadow = true;
     puppyGroup.add(leftPaw);
 
-    const rightLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    rightLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
     rightLeg.position.set(0.085, 0.12, 0.12);
     rightLeg.rotation.x = -0.08;
     rightLeg.castShadow = true;
     puppyGroup.add(rightLeg);
 
-    const rightPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    rightPaw = new THREE.Mesh(pawGeo, matPuppyFur);
     rightPaw.position.set(0.085, 0.03, 0.15);
     rightPaw.castShadow = true;
     puppyGroup.add(rightPaw);
@@ -3037,18 +3189,18 @@
     const hindLegGeo = new THREE.SphereGeometry(0.12, 16, 16);
     hindLegGeo.scale(1.25, 0.8, 1.4);
 
-    const leftHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
+    leftHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
     leftHind.position.set(-0.16, 0.08, -0.02);
     leftHind.castShadow = true;
     puppyGroup.add(leftHind);
 
-    const rightHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
+    rightHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
     rightHind.position.set(0.16, 0.08, -0.02);
     rightHind.castShadow = true;
     puppyGroup.add(rightHind);
 
     // Wagging Fluffy Tail
-    const puppyTailGroup = new THREE.Group();
+    puppyTailGroup = new THREE.Group();
     puppyTailGroup.position.set(0, 0.12, -0.18);
     puppyGroup.add(puppyTailGroup);
 
@@ -4126,6 +4278,197 @@
     }
 
     /* =========================================================================
+       PUPPY BEHAVIOR CONTROLLER (Play, Rest, Sleep)
+       ========================================================================= */
+    let dogMode = 'rest'; // 'play' | 'rest' | 'sleep'
+    let dogRunAngle = 0;
+    let dogHopTime = 0;
+    let dogSleepTime = 0;
+    let isDogTransitioning = false;
+
+    function setDogMode(mode, instant = false) {
+      if (dogMode === mode && !instant) return;
+      const prevMode = dogMode;
+      dogMode = mode;
+
+      // Synchronize all dog buttons across PC sidebar and mobile bottom sheet
+      document.querySelectorAll('.dog-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.dog === mode);
+      });
+
+      // Update mobile status text
+      const statusText = document.getElementById('mobile-dog-status-text');
+      if (statusText) {
+        if (mode === 'play') {
+          statusText.textContent = '강아지가 마당과 도그하우스 주변을 신나게 뛰어놀고 있습니다! 🐾';
+        } else if (mode === 'rest') {
+          statusText.textContent = '강아지가 출입문 앞에서 꼬리를 살랑살랑 흔들며 편안하게 쉬고 있습니다.';
+        } else if (mode === 'sleep') {
+          statusText.textContent = '강아지가 집 안 폭신한 방석 위에서 곤히 잠들었습니다. 💤';
+        }
+      }
+
+      // Audio feedback
+      if (!instant) {
+        if (mode === 'play') {
+          playPuppyBarkSound();
+        } else if (mode === 'sleep') {
+          playPuppySleepSound();
+        } else {
+          playSound('click');
+        }
+      }
+
+      if (typeof puppyGroup === 'undefined' || !puppyGroup) return;
+
+      // Kill previous tweens
+      gsap.killTweensOf(puppyGroup.position);
+      gsap.killTweensOf(puppyGroup.rotation);
+      if (typeof puppyBody !== 'undefined' && puppyBody) {
+        gsap.killTweensOf(puppyBody.scale);
+        gsap.killTweensOf(puppyBody.rotation);
+      }
+      if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+        gsap.killTweensOf(puppyHeadGroup.position);
+        gsap.killTweensOf(puppyHeadGroup.rotation);
+      }
+      if (typeof leftLeg !== 'undefined' && leftLeg) gsap.killTweensOf(leftLeg.rotation);
+      if (typeof rightLeg !== 'undefined' && rightLeg) gsap.killTweensOf(rightLeg.rotation);
+      if (typeof leftHind !== 'undefined' && leftHind) gsap.killTweensOf(leftHind.rotation);
+      if (typeof rightHind !== 'undefined' && rightHind) gsap.killTweensOf(rightHind.rotation);
+      if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) gsap.killTweensOf(puppyTailGroup.rotation);
+
+      const dur = instant ? 0 : 0.85;
+      const ease = "power2.inOut";
+
+      if (mode === 'rest') {
+        isDogTransitioning = true;
+        // Smoothly return to doorway front yard
+        gsap.to(puppyGroup.position, {
+          x: 0.68,
+          y: 0.02,
+          z: 1.88,
+          duration: dur,
+          ease,
+          onComplete: () => { isDogTransitioning = false; }
+        });
+        gsap.to(puppyGroup.rotation, { x: 0, y: -Math.PI * 0.22, z: 0, duration: dur, ease });
+
+        if (typeof puppyBody !== 'undefined' && puppyBody) {
+          gsap.to(puppyBody.scale, { x: 0.96, y: 1.15, z: 0.92, duration: dur, ease });
+          gsap.to(puppyBody.rotation, { x: 0.15, y: 0, z: 0, duration: dur, ease });
+        }
+        if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+          gsap.to(puppyHeadGroup.position, { x: 0, y: 0.52, z: 0.07, duration: dur, ease });
+          gsap.to(puppyHeadGroup.rotation, { x: 0, y: 0, z: 0.06, duration: dur, ease });
+        }
+        if (typeof leftLeg !== 'undefined' && leftLeg) gsap.to(leftLeg.rotation, { x: -0.08, duration: dur, ease });
+        if (typeof rightLeg !== 'undefined' && rightLeg) gsap.to(rightLeg.rotation, { x: -0.08, duration: dur, ease });
+        if (typeof leftHind !== 'undefined' && leftHind) gsap.to(leftHind.rotation, { x: 0, duration: dur, ease });
+        if (typeof rightHind !== 'undefined' && rightHind) gsap.to(rightHind.rotation, { x: 0, duration: dur, ease });
+        if (typeof leftEar !== 'undefined' && leftEar) gsap.to(leftEar.rotation, { x: 0.2, y: 0, z: 0.42, duration: dur, ease });
+        if (typeof rightEar !== 'undefined' && rightEar) gsap.to(rightEar.rotation, { x: 0.2, y: 0, z: -0.42, duration: dur, ease });
+
+        if (typeof leftEye !== 'undefined' && leftEye) leftEye.scale.set(1, 1, 1);
+        if (typeof rightEye !== 'undefined' && rightEye) rightEye.scale.set(1, 1, 1);
+        if (typeof leftCatch !== 'undefined' && leftCatch) leftCatch.visible = true;
+        if (typeof rightCatch !== 'undefined' && rightCatch) rightCatch.visible = true;
+
+      } else if (mode === 'sleep') {
+        isDogTransitioning = true;
+        // Enter house and lie curled up on cushion bed
+        const tl = gsap.timeline({
+          onComplete: () => { isDogTransitioning = false; }
+        });
+
+        if (!instant && prevMode === 'play') {
+          tl.to(puppyGroup.position, { x: 0.3, y: 0.02, z: 1.6, duration: 0.45, ease: "power1.in" });
+          tl.to(puppyGroup.rotation, { y: Math.PI, duration: 0.35, ease: "power1.in" }, 0);
+        }
+
+        tl.to(puppyGroup.position, {
+          x: 0.0,
+          y: 0.44,
+          z: 0.12,
+          duration: instant ? 0 : 0.8,
+          ease
+        });
+        tl.to(puppyGroup.rotation, {
+          x: -0.22,
+          y: Math.PI * 0.65,
+          z: 0.12,
+          duration: instant ? 0 : 0.8,
+          ease
+        }, instant ? 0 : ">-0.6");
+
+        if (typeof puppyBody !== 'undefined' && puppyBody) {
+          tl.to(puppyBody.scale, { x: 1.05, y: 0.86, z: 1.0, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyBody.rotation, { x: 0.28, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+        if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+          tl.to(puppyHeadGroup.position, { x: 0.02, y: 0.40, z: 0.12, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyHeadGroup.rotation, { x: 0.15, y: 0.22, z: -0.28, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+        if (typeof leftEar !== 'undefined' && leftEar) tl.to(leftEar.rotation, { x: 0.1, y: 0, z: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof rightEar !== 'undefined' && rightEar) tl.to(rightEar.rotation, { x: 0.1, y: 0, z: -0.25, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof leftLeg !== 'undefined' && leftLeg) tl.to(leftLeg.rotation, { x: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof rightLeg !== 'undefined' && rightLeg) tl.to(rightLeg.rotation, { x: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof leftHind !== 'undefined' && leftHind) tl.to(leftHind.rotation, { x: 0.15, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof rightHind !== 'undefined' && rightHind) tl.to(rightHind.rotation, { x: 0.15, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) tl.to(puppyTailGroup.rotation, { x: -0.42, y: 0.25, z: 0, duration: instant ? 0 : 0.7, ease }, "<");
+
+        setTimeout(() => {
+          if (dogMode === 'sleep') {
+            if (typeof leftEye !== 'undefined' && leftEye) leftEye.scale.set(1.0, 0.12, 1.0);
+            if (typeof rightEye !== 'undefined' && rightEye) rightEye.scale.set(1.0, 0.12, 1.0);
+            if (typeof leftCatch !== 'undefined' && leftCatch) leftCatch.visible = false;
+            if (typeof rightCatch !== 'undefined' && rightCatch) rightCatch.visible = false;
+          }
+        }, instant ? 0 : 700);
+
+      } else if (mode === 'play') {
+        if (typeof leftEye !== 'undefined' && leftEye) leftEye.scale.set(1, 1, 1);
+        if (typeof rightEye !== 'undefined' && rightEye) rightEye.scale.set(1, 1, 1);
+        if (typeof leftCatch !== 'undefined' && leftCatch) leftCatch.visible = true;
+        if (typeof rightCatch !== 'undefined' && rightCatch) rightCatch.visible = true;
+
+        if (typeof puppyBody !== 'undefined' && puppyBody) {
+          gsap.to(puppyBody.scale, { x: 0.96, y: 1.15, z: 0.92, duration: 0.35 });
+          gsap.to(puppyBody.rotation, { x: 0.15, duration: 0.35 });
+        }
+        if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+          gsap.to(puppyHeadGroup.position, { x: 0, y: 0.52, z: 0.07, duration: 0.35 });
+        }
+
+        if (prevMode === 'sleep') {
+          isDogTransitioning = true;
+          const tl = gsap.timeline({
+            onComplete: () => {
+              isDogTransitioning = false;
+              dogRunAngle = Math.PI * 0.45;
+            }
+          });
+          tl.to(puppyGroup.position, { x: 0.0, y: 0.02, z: 1.5, duration: 0.55, ease: "power1.out" });
+          tl.to(puppyGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.45, ease: "power1.out" }, 0);
+          tl.to(puppyGroup.position, { x: 1.2, y: 0.02, z: 2.0, duration: 0.45, ease: "power1.in" });
+        } else {
+          const radX = 2.6;
+          const radZ = 2.3;
+          const centerX = 0.0;
+          const centerZ = 0.4;
+          dogRunAngle = Math.atan2(puppyGroup.position.z - centerZ, puppyGroup.position.x - centerX);
+          isDogTransitioning = false;
+        }
+      }
+    }
+
+    document.querySelectorAll('.dog-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setDogMode(btn.dataset.dog);
+      });
+    });
+
+    /* =========================================================================
        MOBILE BOTTOM SHEET & DOCK CONTROLLER
        ========================================================================= */
     const mobileSheet = document.getElementById('mobile-bottom-sheet');
@@ -4425,17 +4768,93 @@
       requestAnimationFrame(animate);
       puppyTime += 0.04;
 
-      // Adorable Puppy Live Animations (wagging tail, head tilt & gentle breathing)
-      if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
-        puppyTailGroup.rotation.y = Math.sin(puppyTime * 7.5) * 0.42;
-        puppyTailGroup.rotation.x = -0.15 + Math.sin(puppyTime * 3.5) * 0.08;
-      }
-      if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
-        puppyHeadGroup.rotation.z = 0.06 + Math.sin(puppyTime * 2.2) * 0.05;
-        puppyHeadGroup.rotation.x = Math.sin(puppyTime * 3.0) * 0.025;
-      }
-      if (typeof puppyGroup !== 'undefined' && puppyGroup) {
-        puppyGroup.position.y = 0.02 + Math.sin(puppyTime * 3.5) * 0.005;
+      // Adorable Puppy Live Animations (Play, Rest, Sleep)
+      if (typeof puppyGroup !== 'undefined' && puppyGroup && puppyGroup.visible) {
+        if (!isDogTransitioning) {
+          if (dogMode === 'play') {
+            dogRunAngle += 0.022;
+            dogHopTime += 0.16;
+
+            const radX = 2.6;
+            const radZ = 2.3;
+            const centerX = 0.0;
+            const centerZ = 0.4;
+            const px = centerX + Math.cos(dogRunAngle) * radX;
+            const pz = centerZ + Math.sin(dogRunAngle) * radZ;
+
+            // Face forward direction along circular path
+            const dx = -Math.sin(dogRunAngle) * radX;
+            const dz = Math.cos(dogRunAngle) * radZ;
+            const heading = Math.atan2(dx, dz);
+
+            puppyGroup.position.x = px;
+            puppyGroup.position.z = pz;
+            puppyGroup.position.y = 0.02 + Math.abs(Math.sin(dogHopTime * 2.5)) * 0.08;
+            puppyGroup.rotation.y = heading;
+            puppyGroup.rotation.x = 0.10 + Math.sin(dogHopTime * 2.5) * 0.06;
+            puppyGroup.rotation.z = Math.sin(dogHopTime * 1.25) * 0.04;
+
+            // Gallop leg trot
+            if (typeof leftLeg !== 'undefined' && leftLeg) {
+              leftLeg.rotation.x = -0.08 + Math.sin(dogHopTime * 2.5) * 0.5;
+              rightLeg.rotation.x = -0.08 - Math.sin(dogHopTime * 2.5) * 0.5;
+            }
+            if (typeof leftHind !== 'undefined' && leftHind) {
+              leftHind.rotation.x = -Math.sin(dogHopTime * 2.5) * 0.35;
+              rightHind.rotation.x = Math.sin(dogHopTime * 2.5) * 0.35;
+            }
+
+            // Head and floppy ears bobbing
+            if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+              puppyHeadGroup.rotation.x = Math.sin(dogHopTime * 2.5) * 0.07;
+              puppyHeadGroup.rotation.z = Math.sin(dogHopTime * 1.25) * 0.08;
+            }
+            if (typeof leftEar !== 'undefined' && leftEar) {
+              leftEar.rotation.z = 0.42 + Math.sin(dogHopTime * 2.5) * 0.18;
+              rightEar.rotation.z = -0.42 - Math.sin(dogHopTime * 2.5) * 0.18;
+            }
+
+            // Excited tail wagging
+            if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+              puppyTailGroup.rotation.y = Math.sin(puppyTime * 16.0) * 0.65;
+              puppyTailGroup.rotation.x = -0.28 + Math.sin(puppyTime * 8.0) * 0.12;
+            }
+
+          } else if (dogMode === 'rest') {
+            // Sitting calmly by entrance
+            puppyGroup.position.x = 0.68;
+            puppyGroup.position.z = 1.88;
+            puppyGroup.position.y = 0.02 + Math.sin(puppyTime * 3.5) * 0.005;
+            puppyGroup.rotation.y = -Math.PI * 0.22;
+            puppyGroup.rotation.x = 0;
+            puppyGroup.rotation.z = 0;
+
+            if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+              puppyTailGroup.rotation.y = Math.sin(puppyTime * 7.5) * 0.42;
+              puppyTailGroup.rotation.x = -0.15 + Math.sin(puppyTime * 3.5) * 0.08;
+            }
+            if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+              puppyHeadGroup.rotation.z = 0.06 + Math.sin(puppyTime * 2.2) * 0.05;
+              puppyHeadGroup.rotation.x = Math.sin(puppyTime * 3.0) * 0.025;
+            }
+
+          } else if (dogMode === 'sleep') {
+            // Sleeping snugly on interior bed cushion
+            dogSleepTime += 0.03;
+            puppyGroup.position.x = 0.0;
+            puppyGroup.position.z = 0.12;
+            puppyGroup.position.y = 0.44 + Math.sin(dogSleepTime * 1.6) * 0.006;
+            puppyGroup.rotation.set(-0.22, Math.PI * 0.65, 0.12);
+
+            // Deep breathing motion
+            if (typeof puppyBody !== 'undefined' && puppyBody) {
+              puppyBody.scale.y = 0.86 + Math.sin(dogSleepTime * 1.6) * 0.035;
+            }
+            if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+              puppyTailGroup.rotation.x = -0.42 + Math.sin(dogSleepTime * 1.6) * 0.02;
+            }
+          }
+        }
       }
 
       // Clouds Gentle Celestial Drift
@@ -4479,6 +4898,9 @@
 
     // Initial environment synchronization (Daylight default)
     setLightingEnvironment('day', true);
+
+    // Initial puppy behavior synchronization (Resting at entrance by default)
+    setDogMode('rest', true);
 
     // Start pleasant daytime bird song on user's first click/touch interaction
     function handleInitialAudioUnlock() {
