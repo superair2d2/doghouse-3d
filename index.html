@@ -3227,17 +3227,17 @@
     landscapeGroup.add(fenceGroup);
 
     // 12. Floating Fireflies Particle Swarm
-    const fireflyCount = 65;
+    const fireflyCount = 90;
     const fireflyGeo = new THREE.BufferGeometry();
     const fireflyPos = new Float32Array(fireflyCount * 3);
     const fireflyData = [];
 
     for (let i = 0; i < fireflyCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const rad = 1.6 + Math.random() * 6.5;
+      const rad = 1.4 + Math.random() * 6.8;
       const x = Math.cos(angle) * rad;
       const z = Math.sin(angle) * rad;
-      const y = 0.3 + Math.random() * 2.2;
+      const y = 0.25 + Math.random() * 2.4;
 
       fireflyPos[i * 3] = x;
       fireflyPos[i * 3 + 1] = y;
@@ -3249,14 +3249,15 @@
         baseZ: z,
         speed: 0.6 + Math.random() * 1.2,
         phase: Math.random() * Math.PI * 2,
-        range: 0.3 + Math.random() * 0.7
+        range: 0.25 + Math.random() * 0.6
       });
     }
     fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fireflyPos, 3));
 
     const fireflyMat = new THREE.PointsMaterial({
       color: 0xeeff77,
-      size: 5.5,
+      size: 0.22,
+      sizeAttenuation: true,
       map: glowTex,
       transparent: true,
       opacity: 0.0,
@@ -4099,6 +4100,7 @@
           pArr[i * 3 + 2] = d.baseZ + Math.cos(t) * d.range;
         }
         fireflyGeo.attributes.position.needsUpdate = true;
+        fireflyMat.size = 0.21 + Math.sin(puppyTime * 3.2) * 0.03;
       }
 
       // Stars Twinkling Effect in Night Sky
