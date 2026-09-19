@@ -4312,9 +4312,22 @@
        ========================================================================= */
     let dogMode = 'rest'; // 'play' | 'rest' | 'sleep'
     let playAngle = 0;
+    let playDirection = 1; // +1: counter-clockwise, -1: clockwise
     let gallopTime = 0;
     let dogSleepTime = 0;
     let isDogTransitioning = false;
+
+    // Organic winding path around the mushroom doghouse
+    function getDogPlayTarget(angle) {
+      const rX = 2.5 + Math.sin(angle * 2.0) * 0.45;
+      const rZ = 2.2 + Math.cos(angle * 3.0) * 0.4;
+      const cX = 0.0 + Math.sin(angle * 1.2) * 0.25;
+      const cZ = 0.35;
+      return {
+        x: cX + Math.cos(angle) * rX,
+        z: cZ + Math.sin(angle) * rZ
+      };
+    }
 
     // Play State Machine (Sprint, Sniff, Play Bow, Spin, Porch Visit)
     let playSubState = 'sprint';
@@ -4324,7 +4337,20 @@
     const playSequence = ['sprint', 'sniff', 'sprint', 'bow', 'sprint', 'spin', 'sprint', 'hop'];
 
     function setDogMode(mode, instant = false) {
-      if (dogMode === mode && !instant) return;
+      if (dogMode === mode && !instant) {
+        if (mode === 'play') {
+          // If already in play mode, tapping '뛰어놀기' again reverses the running direction immediately!
+          playDirection *= -1;
+          playPuppyBarkSound();
+          const statusText = document.getElementById('mobile-dog-status-text');
+          if (statusText) {
+            statusText.textContent = (playDirection > 0)
+              ? '강아지가 방향을 반대로 틀어 반시계 방향으로 질주합니다! 🔄🐾'
+              : '강아지가 방향을 반대로 틀어 시계 방향으로 신나게 달립니다! 🔄🐾';
+          }
+        }
+        return;
+      }
       const prevMode = dogMode;
       dogMode = mode;
 
@@ -4922,6 +4948,8 @@
               playSubState = playSequence[playSubIndex];
 
               if (playSubState === 'sprint') {
+                // Reverse direction when launching into a new sprint!
+                playDirection *= -1;
                 playSubDuration = 4.2 + Math.random() * 1.5;
               } else if (playSubState === 'sniff') {
                 playSubDuration = 3.2 + Math.random() * 1.0;
@@ -4940,7 +4968,9 @@
             const statusText = document.getElementById('mobile-dog-status-text');
             if (statusText) {
               if (playSubState === 'sprint') {
-                statusText.textContent = '강아지가 네발로 잔디 마당을 신나게 달립니다! 🐾';
+                statusText.textContent = (playDirection > 0)
+                  ? '강아지가 반시계 방향으로 마당을 힘차게 질주합니다! 🐾'
+                  : '강아지가 방향을 반대로 틀어 시계 방향으로 신나게 달립니다! 🔄🐾';
               } else if (playSubState === 'sniff') {
                 statusText.textContent = '강아지가 멈춰 서서 풀잎 냄새를 킁킁 맡고 있어요. 🌸';
               } else if (playSubState === 'bow') {
@@ -4953,33 +4983,32 @@
             }
 
             if (playSubState === 'sprint') {
-              playAngle += 0.024;
+              playAngle += 0.024 * playDirection;
               gallopTime += 0.25;
 
-              // Organic winding path with changing radius around the yard
-              const rX = 2.5 + Math.sin(playAngle * 2.0) * 0.45;
-              const rZ = 2.2 + Math.cos(playAngle * 3.0) * 0.4;
-              const cX = 0.0 + Math.sin(playAngle * 1.2) * 0.25;
-              const cZ = 0.35;
+              const cur = getDogPlayTarget(playAngle);
+              const aheadAngle = playAngle + 0.05 * playDirection;
+              const ahead = getDogPlayTarget(aheadAngle);
 
-              const px = cX + Math.cos(playAngle) * rX;
-              const pz = cZ + Math.sin(playAngle) * rZ;
+              const px = cur.x;
+              const pz = cur.z;
 
-              // Smooth heading calculation
-              const dx = -Math.sin(playAngle) * rX;
-              const dz = Math.cos(playAngle) * rZ;
+              // Smooth forward heading calculation (accurate in both CCW and CW directions)
+              const dx = ahead.x - cur.x;
+              const dz = ahead.z - cur.z;
               const targetHeading = Math.atan2(dx, dz);
 
               let diff = targetHeading - puppyGroup.rotation.y;
               while (diff < -Math.PI) diff += Math.PI * 2;
               while (diff > Math.PI) diff -= Math.PI * 2;
-              puppyGroup.rotation.y += diff * 0.22;
+              puppyGroup.rotation.y += diff * 0.18;
 
               puppyGroup.position.x = px;
               puppyGroup.position.z = pz;
               puppyGroup.position.y = 0.02 + Math.abs(Math.sin(gallopTime)) * 0.075;
               puppyGroup.rotation.x = Math.sin(gallopTime * 2) * 0.06;
-              puppyGroup.rotation.z = Math.sin(gallopTime) * 0.04;
+              // Dynamic banking into turns
+              puppyGroup.rotation.z = -diff * 0.35 + Math.sin(gallopTime) * 0.04;
 
               // Four-Legged Quadruped Gallop Trot (Diagonal Coordination)
               const legSwing = Math.sin(gallopTime) * 0.62;
