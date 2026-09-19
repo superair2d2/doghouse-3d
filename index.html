@@ -1051,15 +1051,16 @@
       }
 
       /* Mobile Bottom Sheet & Backdrop */
+      /* Mobile Bottom Sheet & Backdrop (No blur on main screen, transparent touch-dismiss) */
       .mobile-sheet-backdrop {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        background: transparent;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
         z-index: 30;
         opacity: 0;
         pointer-events: none;
@@ -4054,7 +4055,15 @@
     }
 
     if (btnExplodeToggle) btnExplodeToggle.addEventListener('click', toggleExplodeAnim);
-    if (mobileBtnExplodeToggle) mobileBtnExplodeToggle.addEventListener('click', toggleExplodeAnim);
+    if (mobileBtnExplodeToggle) {
+      mobileBtnExplodeToggle.addEventListener('click', () => {
+        toggleExplodeAnim();
+        // 분해/조립 버튼 선택 시 자동으로 메인화면으로 복귀
+        if (typeof closeMobileSheet === 'function') {
+          setTimeout(closeMobileSheet, 220);
+        }
+      });
+    }
 
     /* =========================================================================
        LIGHTING ATMOSPHERE (DUAL SYNC: PC & MOBILE)
@@ -4634,6 +4643,10 @@
     document.querySelectorAll('.dog-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         setDogMode(btn.dataset.dog);
+        // 모바일 바텀시트 메뉴에서 강아지 항목 선택 시 X 버튼 누를 필요 없이 자동으로 메인화면 복귀
+        if (typeof closeMobileSheet === 'function' && mobileSheet && mobileSheet.classList.contains('show')) {
+          setTimeout(closeMobileSheet, 160);
+        }
       });
     });
 
@@ -4691,10 +4704,29 @@
       });
     }
 
-    // 모바일 앵글 프리셋 버튼 클릭 이벤트
+    // 모바일 앵글 프리셋 버튼 클릭 이벤트 (항목 선택 시 X 버튼 누르지 않아도 자동으로 메인화면 복귀)
     document.querySelectorAll('.mobile-view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        document.querySelectorAll('.mobile-view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         transitionCamera(btn.dataset.view);
+        setTimeout(closeMobileSheet, 160);
+      });
+    });
+
+    // 모바일 상세제원 카드 터치 시에도 메인화면으로 복귀
+    document.querySelectorAll('.mobile-spec-card').forEach(card => {
+      card.addEventListener('click', () => {
+        setTimeout(closeMobileSheet, 160);
+      });
+    });
+
+    // 상단 모드(실사/청사진/단면) 및 조명(낮/노을/밤) 터치 시 열려있던 시트 자동 닫기
+    document.querySelectorAll('.mode-btn, .mode-env-row .env-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (mobileSheet && mobileSheet.classList.contains('show')) {
+          closeMobileSheet();
+        }
       });
     });
 
