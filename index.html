@@ -3706,35 +3706,71 @@
     }
     landscapeGroup.add(flowersGroup);
 
-    // 11. Rustic Wooden Fence along the garden edge
+    // 11. Rustic Wooden Fence along the garden edge (Enclosing the yard with front gate opening)
     const fenceGroup = new THREE.Group();
     const matFence = new THREE.MeshStandardMaterial({ color: 0x8d6e53, roughness: 0.85 });
-    const fencePostGeo = new THREE.BoxGeometry(0.08, 0.6, 0.08);
-    const fenceRailGeo = new THREE.BoxGeometry(0.72, 0.05, 0.04);
+    const fencePostGeo = new THREE.BoxGeometry(0.09, 0.62, 0.09);
+    const postCapGeo = new THREE.BoxGeometry(0.11, 0.03, 0.11);
+    const gatePostGeo = new THREE.BoxGeometry(0.11, 0.70, 0.11);
+    const gateCapGeo = new THREE.BoxGeometry(0.14, 0.04, 0.14);
 
-    for (let f = 0; f < 10; f++) {
-      const a = (f < 5) ? (-0.85 - f * 0.28) : (0.85 + (f - 5) * 0.28);
-      const r = 3.9;
-      const px = Math.sin(a) * r;
-      const pz = -Math.cos(a) * r;
+    const fenceRadius = 3.9;
+    const gateAngle = 0.38; // ~2.9m front entrance opening for the stone garden walkway
+    const totalArc = Math.PI * 2 - gateAngle * 2;
+    const fenceSegments = 26; // 27 posts, ~0.83m span per panel
+    const dAngle = totalArc / fenceSegments;
 
-      const post = new THREE.Mesh(fencePostGeo, matFence);
-      post.position.set(px, 0.25, pz);
-      post.rotation.y = -a;
+    // 1. Generate fence posts along the garden perimeter curve
+    const postPositions = [];
+    for (let i = 0; i <= fenceSegments; i++) {
+      const angle = gateAngle + i * dAngle;
+      const px = Math.sin(angle) * fenceRadius;
+      const pz = Math.cos(angle) * fenceRadius;
+      postPositions.push({ x: px, z: pz, angle: angle });
+
+      const isGate = (i === 0 || i === fenceSegments);
+      const post = new THREE.Mesh(isGate ? gatePostGeo : fencePostGeo, matFence);
+      post.position.set(px, isGate ? 0.19 : 0.15, pz);
+      post.rotation.y = -angle;
       post.castShadow = true;
       post.receiveShadow = true;
       fenceGroup.add(post);
 
-      const rail1 = new THREE.Mesh(fenceRailGeo, matFence);
-      rail1.position.set(px, 0.38, pz);
-      rail1.rotation.y = -a + Math.PI / 2;
+      const cap = new THREE.Mesh(isGate ? gateCapGeo : postCapGeo, matFence);
+      cap.position.set(px, isGate ? 0.54 : 0.46, pz);
+      cap.rotation.y = -angle;
+      cap.castShadow = true;
+      fenceGroup.add(cap);
+    }
+
+    // 2. Connect consecutive posts with upper and lower horizontal rails along the perimeter
+    for (let i = 0; i < fenceSegments; i++) {
+      const p1 = postPositions[i];
+      const p2 = postPositions[i + 1];
+
+      const dx = p2.x - p1.x;
+      const dz = p2.z - p1.z;
+      const span = Math.sqrt(dx * dx + dz * dz);
+      const mx = (p1.x + p2.x) * 0.5;
+      const mz = (p1.z + p2.z) * 0.5;
+
+      // Rail geometry with slight overlap (0.04m) to embed seamlessly into adjacent posts
+      const railGeo = new THREE.BoxGeometry(0.045, 0.055, span + 0.04);
+
+      // Upper Rail
+      const rail1 = new THREE.Mesh(railGeo, matFence);
+      rail1.position.set(mx, 0.36, mz);
+      rail1.lookAt(p2.x, 0.36, p2.z);
       rail1.castShadow = true;
+      rail1.receiveShadow = true;
       fenceGroup.add(rail1);
 
-      const rail2 = new THREE.Mesh(fenceRailGeo, matFence);
-      rail2.position.set(px, 0.18, pz);
-      rail2.rotation.y = -a + Math.PI / 2;
+      // Lower Rail
+      const rail2 = new THREE.Mesh(railGeo, matFence);
+      rail2.position.set(mx, 0.18, mz);
+      rail2.lookAt(p2.x, 0.18, p2.z);
       rail2.castShadow = true;
+      rail2.receiveShadow = true;
       fenceGroup.add(rail2);
     }
     landscapeGroup.add(fenceGroup);
@@ -4133,6 +4169,9 @@
         if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
           gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.0, duration: dur, ease });
         }
+        if (typeof matFence !== 'undefined' && matFence) {
+          gsap.to(matFence.color, { r: 0.553, g: 0.431, b: 0.325, duration: dur, ease });
+        }
 
         // 5. Lighting Setup
         gsap.to(dirLight.position, { x: 20, y: 28, z: 16, duration: dur, ease });
@@ -4208,6 +4247,9 @@
         if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
           matMiniMushroomCap.emissive.set('#ff4411');
           gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.4, duration: dur, ease });
+        }
+        if (typeof matFence !== 'undefined' && matFence) {
+          gsap.to(matFence.color, { r: 0.60, g: 0.38, b: 0.24, duration: dur, ease });
         }
 
         // 5. Lighting Setup (Dramatic low-angle sunset shadows)
@@ -4285,6 +4327,9 @@
         if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
           matMiniMushroomCap.emissive.set('#11eebb');
           gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.9, duration: dur, ease });
+        }
+        if (typeof matFence !== 'undefined' && matFence) {
+          gsap.to(matFence.color, { r: 0.12, g: 0.14, b: 0.18, duration: dur, ease });
         }
 
         // 5. Lighting Setup (Soft cool moonlight + cozy glowing porch and interior)
