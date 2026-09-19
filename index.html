@@ -1422,7 +1422,7 @@
       <i class="fa-solid fa-video"></i>
     </div>
     <div class="view-buttons-grid">
-      <button class="btn-preset active" data-view="front">
+      <button class="btn-preset" data-view="front">
         <i class="fa-solid fa-door-open"></i>
         <span>정면 출입구</span>
       </button>
@@ -1430,7 +1430,7 @@
         <i class="fa-solid fa-circle-notch"></i>
         <span>측면 창문</span>
       </button>
-      <button class="btn-preset" data-view="iso">
+      <button class="btn-preset active" data-view="iso">
         <i class="fa-solid fa-shapes"></i>
         <span>투시도 (3D)</span>
       </button>
@@ -1579,7 +1579,7 @@
         <span>카메라 앵글 프리셋</span>
       </div>
       <div class="mobile-view-grid" style="margin-top: 8px;">
-        <button class="mobile-view-btn active" data-view="front">
+        <button class="mobile-view-btn" data-view="front">
           <i class="fa-solid fa-door-open"></i>
           <span>정면 출입구</span>
         </button>
@@ -1587,7 +1587,7 @@
           <i class="fa-solid fa-circle-notch"></i>
           <span>측면 창문</span>
         </button>
-        <button class="mobile-view-btn" data-view="iso">
+        <button class="mobile-view-btn active" data-view="iso">
           <i class="fa-solid fa-shapes"></i>
           <span>투시도 (3D)</span>
         </button>
@@ -2496,9 +2496,9 @@
     const initCam = getResponsiveCameraSettings();
     const camera = new THREE.PerspectiveCamera(initCam.fov, initCam.aspect, 0.1, 400);
     camera.position.set(
-      3.8 * initCam.distFactor,
-      2.5 * initCam.distFactor,
-      4.8 * initCam.distFactor
+      4.65 * initCam.distFactor,
+      3.00 * initCam.distFactor,
+      5.85 * initCam.distFactor
     );
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -3959,12 +3959,12 @@
        CAMERA PRESET POSITIONS (RESPONSIVE)
        ========================================================================= */
     const presets = {
-      front: { pos: [0, 1.4, 4.4], target: [0, 1.2, 0] },
-      porthole: { pos: [-3.2, 1.45, 1.25], target: [-0.2, 1.15, 0.0] },
-      iso: { pos: [3.8, 2.5, 4.8], target: [0, 1.4, 0] },
-      top: { pos: [0.01, 5.6, 0.01], target: [0, 1.5, 0] },
+      front: { pos: [0, 1.45, 5.0], target: [0, 1.2, 0] },
+      porthole: { pos: [-3.5, 1.5, 1.35], target: [-0.2, 1.15, 0.0] },
+      iso: { pos: [4.65, 3.0, 5.85], target: [0, 1.4, 0] },
+      top: { pos: [0.01, 6.2, 0.01], target: [0, 1.5, 0] },
       interior: { pos: [0, 1.0, 1.8], target: [0, 0.7, 0] },
-      elevation: { pos: [0, 1.6, 5.5], target: [0, 1.6, 0] }
+      elevation: { pos: [0, 1.6, 6.0], target: [0, 1.6, 0] }
     };
 
     function transitionCamera(presetKey) {
