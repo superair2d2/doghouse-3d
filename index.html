@@ -1750,6 +1750,107 @@
     }
 
     /* =========================================================================
+       PROCEDURAL CRICKET NIGHT AMBIENCE (Web Audio API)
+       ========================================================================= */
+    let cricketMasterGain = null;
+    let cricketTimeoutA = null;
+    let cricketTimeoutB = null;
+    let isCricketPlaying = false;
+
+    // Organic cricket chirp: 3-4 rapid micro-pulses in high frequency band
+    function playCricketChirp(freq, volume) {
+      if (!soundEnabled || !audioCtx || audioCtx.state === 'suspended') return;
+
+      const now = audioCtx.currentTime;
+      const pulseCount = 3 + Math.floor(Math.random() * 2);
+      const pulseLen = 0.016; // 16ms
+      const pulseGap = 0.018; // 18ms
+
+      for (let p = 0; p < pulseCount; p++) {
+        const pStart = now + p * (pulseLen + pulseGap);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, pStart);
+        osc.frequency.linearRampToValueAtTime(freq + 160, pStart + pulseLen * 0.5);
+        osc.frequency.linearRampToValueAtTime(freq - 80, pStart + pulseLen);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(freq, pStart);
+        filter.Q.setValueAtTime(7.5, pStart);
+
+        gain.gain.setValueAtTime(0.0001, pStart);
+        gain.gain.exponentialRampToValueAtTime(volume, pStart + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.0001, pStart + pulseLen);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(cricketMasterGain);
+
+        osc.start(pStart);
+        osc.stop(pStart + pulseLen);
+      }
+    }
+
+    function startCricketSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      if (isCricketPlaying) return;
+      isCricketPlaying = true;
+
+      if (!cricketMasterGain) {
+        cricketMasterGain = audioCtx.createGain();
+        cricketMasterGain.connect(audioCtx.destination);
+      }
+
+      const now = audioCtx.currentTime;
+      cricketMasterGain.gain.cancelScheduledValues(now);
+      cricketMasterGain.gain.setValueAtTime(cricketMasterGain.gain.value || 0.001, now);
+      cricketMasterGain.gain.linearRampToValueAtTime(0.24, now + 1.6); // Gentle cozy volume
+
+      // Cricket A (Near: ~4750Hz, frequent chirps)
+      function scheduleCricketA() {
+        if (!isCricketPlaying) return;
+        const jitter = (Math.random() - 0.5) * 220;
+        playCricketChirp(4750 + jitter, 0.20);
+        const nextTime = 750 + Math.random() * 850;
+        cricketTimeoutA = setTimeout(scheduleCricketA, nextTime);
+      }
+      scheduleCricketA();
+
+      // Cricket B (Far ambient: ~4280Hz, softer & slightly slower)
+      function scheduleCricketB() {
+        if (!isCricketPlaying) return;
+        const jitter = (Math.random() - 0.5) * 180;
+        playCricketChirp(4280 + jitter, 0.11);
+        const nextTime = 1200 + Math.random() * 1400;
+        cricketTimeoutB = setTimeout(scheduleCricketB, nextTime);
+      }
+      setTimeout(scheduleCricketB, 400);
+    }
+
+    function stopCricketSound() {
+      if (!isCricketPlaying) return;
+      isCricketPlaying = false;
+
+      if (cricketTimeoutA) { clearTimeout(cricketTimeoutA); cricketTimeoutA = null; }
+      if (cricketTimeoutB) { clearTimeout(cricketTimeoutB); cricketTimeoutB = null; }
+
+      if (cricketMasterGain && audioCtx) {
+        const now = audioCtx.currentTime;
+        cricketMasterGain.gain.cancelScheduledValues(now);
+        cricketMasterGain.gain.setValueAtTime(cricketMasterGain.gain.value, now);
+        cricketMasterGain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
+      }
+    }
+
+    /* =========================================================================
        PROCEDURAL TEXTURE GENERATORS
        ========================================================================= */
     function createWoodTexture() {
@@ -3687,6 +3788,8 @@
       const ease = 'power2.inOut';
 
       if (env === 'day') {
+        stopCricketSound();
+
         // 1. Skydome Colors
         if (typeof skyMat !== 'undefined' && skyMat) {
           gsap.to(skyMat.uniforms.topColor.value, { r: 0.118, g: 0.424, b: 0.851, duration: dur, ease });
@@ -3759,6 +3862,8 @@
         }
 
       } else if (env === 'sunset') {
+        stopCricketSound();
+
         // 1. Skydome Colors
         if (typeof skyMat !== 'undefined' && skyMat) {
           gsap.to(skyMat.uniforms.topColor.value, { r: 0.204, g: 0.094, b: 0.329, duration: dur, ease });
@@ -3832,6 +3937,10 @@
         }
 
       } else if (env === 'night') {
+        if (!instant && soundEnabled) {
+          startCricketSound();
+        }
+
         // 1. Skydome Colors
         if (typeof skyMat !== 'undefined' && skyMat) {
           gsap.to(skyMat.uniforms.topColor.value, { r: 0.012, g: 0.024, b: 0.067, duration: dur, ease });
@@ -4063,6 +4172,12 @@
       soundEnabled = !soundEnabled;
       btnSound.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
       btnSound.style.opacity = soundEnabled ? '1.0' : '0.5';
+
+      if (!soundEnabled) {
+        stopCricketSound();
+      } else if (currentEnv === 'night') {
+        startCricketSound();
+      }
     });
 
     /* =========================================================================
