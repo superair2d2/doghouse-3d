@@ -1851,6 +1851,112 @@
     }
 
     /* =========================================================================
+       PROCEDURAL BIRDS DAY AMBIENCE (Web Audio API)
+       ========================================================================= */
+    let birdMasterGain = null;
+    let birdTimeout = null;
+    let isBirdPlaying = false;
+
+    // Single bird chirp note with natural frequency curve and soft envelope
+    function playBirdNote(startFreq, peakFreq, endFreq, duration, startTime, vol) {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, startTime);
+      osc.frequency.exponentialRampToValueAtTime(peakFreq, startTime + duration * 0.4);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(peakFreq, startTime);
+      filter.Q.setValueAtTime(4.0, startTime);
+
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(vol, startTime + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(birdMasterGain);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.01);
+    }
+
+    // Natural bird phrase generator with 3 realistic woodland song motifs
+    function playBirdPhrase() {
+      if (!soundEnabled || !isBirdPlaying || !audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const phraseType = Math.floor(Math.random() * 3);
+      const baseFreq = 2700 + Math.random() * 400; // 2700 ~ 3100 Hz
+
+      if (phraseType === 0) {
+        // Pattern 1: Cheerful 3-syllable song (짹-짹-짹!)
+        const count = 3;
+        for (let i = 0; i < count; i++) {
+          const t = now + i * 0.11;
+          playBirdNote(baseFreq, baseFreq + 850, baseFreq + 250, 0.075, t, 0.20);
+        }
+      } else if (phraseType === 1) {
+        // Pattern 2: Cascading trill / whistle (쪼르르륵-)
+        const count = 4;
+        for (let i = 0; i < count; i++) {
+          const t = now + i * 0.065;
+          const f = baseFreq + 700 - i * 140;
+          playBirdNote(f, f + 350, f - 180, 0.055, t, 0.16);
+        }
+      } else {
+        // Pattern 3: Two-tone morning warble (삐-유, 삐-유)
+        playBirdNote(baseFreq + 200, baseFreq + 1050, baseFreq + 400, 0.09, now, 0.22);
+        playBirdNote(baseFreq + 100, baseFreq + 900, baseFreq + 300, 0.09, now + 0.14, 0.18);
+      }
+
+      // Schedule next bird phrase in natural interval (2.2s ~ 5.2s)
+      const nextDelay = 2200 + Math.random() * 3000;
+      birdTimeout = setTimeout(playBirdPhrase, nextDelay);
+    }
+
+    function startBirdSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      if (isBirdPlaying) return;
+      isBirdPlaying = true;
+
+      if (!birdMasterGain) {
+        birdMasterGain = audioCtx.createGain();
+        birdMasterGain.connect(audioCtx.destination);
+      }
+
+      const now = audioCtx.currentTime;
+      birdMasterGain.gain.cancelScheduledValues(now);
+      birdMasterGain.gain.setValueAtTime(birdMasterGain.gain.value || 0.001, now);
+      birdMasterGain.gain.linearRampToValueAtTime(0.24, now + 1.8);
+
+      birdTimeout = setTimeout(playBirdPhrase, 800);
+    }
+
+    function stopBirdSound() {
+      if (!isBirdPlaying) return;
+      isBirdPlaying = false;
+
+      if (birdTimeout) { clearTimeout(birdTimeout); birdTimeout = null; }
+
+      if (birdMasterGain && audioCtx) {
+        const now = audioCtx.currentTime;
+        birdMasterGain.gain.cancelScheduledValues(now);
+        birdMasterGain.gain.setValueAtTime(birdMasterGain.gain.value, now);
+        birdMasterGain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
+      }
+    }
+
+    /* =========================================================================
        PROCEDURAL TEXTURE GENERATORS
        ========================================================================= */
     function createWoodTexture() {
@@ -3789,6 +3895,9 @@
 
       if (env === 'day') {
         stopCricketSound();
+        if (!instant && soundEnabled) {
+          startBirdSound();
+        }
 
         // 1. Skydome Colors
         if (typeof skyMat !== 'undefined' && skyMat) {
@@ -3863,6 +3972,7 @@
 
       } else if (env === 'sunset') {
         stopCricketSound();
+        stopBirdSound();
 
         // 1. Skydome Colors
         if (typeof skyMat !== 'undefined' && skyMat) {
@@ -3937,6 +4047,7 @@
         }
 
       } else if (env === 'night') {
+        stopBirdSound();
         if (!instant && soundEnabled) {
           startCricketSound();
         }
@@ -4175,8 +4286,13 @@
 
       if (!soundEnabled) {
         stopCricketSound();
-      } else if (currentEnv === 'night') {
-        startCricketSound();
+        stopBirdSound();
+      } else {
+        if (currentEnv === 'night') {
+          startCricketSound();
+        } else if (currentEnv === 'day') {
+          startBirdSound();
+        }
       }
     });
 
@@ -4363,6 +4479,20 @@
 
     // Initial environment synchronization (Daylight default)
     setLightingEnvironment('day', true);
+
+    // Start pleasant daytime bird song on user's first click/touch interaction
+    function handleInitialAudioUnlock() {
+      initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (soundEnabled && currentEnv === 'day' && !isBirdPlaying) {
+        startBirdSound();
+      }
+    }
+    window.addEventListener('click', handleInitialAudioUnlock, { once: true });
+    window.addEventListener('touchstart', handleInitialAudioUnlock, { once: true });
+
     animate();
   </script>
 </body>
