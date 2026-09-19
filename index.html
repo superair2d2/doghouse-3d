@@ -1863,6 +1863,120 @@
       return new THREE.CanvasTexture(canvas);
     }
 
+    function createGrassTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      const grad = ctx.createRadialGradient(256, 256, 50, 256, 256, 256);
+      grad.addColorStop(0, '#538b3e');
+      grad.addColorStop(0.6, '#467934');
+      grad.addColorStop(1, '#3c692c');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Fine grass blades and color variations
+      for (let i = 0; i < 6000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const len = 4 + Math.random() * 8;
+        const colVal = Math.random();
+        if (colVal < 0.4) {
+          ctx.strokeStyle = 'rgba(115, 195, 82, 0.45)'; // Bright lush blade
+        } else if (colVal < 0.75) {
+          ctx.strokeStyle = 'rgba(48, 88, 32, 0.4)';   // Deep shadow blade
+        } else {
+          ctx.strokeStyle = 'rgba(150, 180, 75, 0.35)'; // Golden tip
+        }
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (Math.random() - 0.5) * 3, y - len);
+        ctx.stroke();
+      }
+
+      // Small clover and moss dapples
+      ctx.fillStyle = 'rgba(78, 140, 52, 0.35)';
+      for (let i = 0; i < 400; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const cr = 2 + Math.random() * 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(16, 16);
+      return tex;
+    }
+
+    function createRadialGlowTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+      grad.addColorStop(0.25, 'rgba(255, 255, 255, 0.75)');
+      grad.addColorStop(0.55, 'rgba(255, 255, 255, 0.25)');
+      grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 256, 256);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createMoonTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      // Pale silvery moon base
+      ctx.fillStyle = '#f0f4fa';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Lunar Maria (darker grey basaltic plains)
+      const maria = [
+        { x: 190, y: 170, r: 85, o: 0.18 },
+        { x: 290, y: 150, r: 95, o: 0.22 },
+        { x: 330, y: 260, r: 80, o: 0.20 },
+        { x: 170, y: 310, r: 100, o: 0.25 },
+        { x: 260, y: 370, r: 75, o: 0.16 },
+        { x: 380, y: 200, r: 55, o: 0.14 },
+      ];
+      maria.forEach(m => {
+        const grad = ctx.createRadialGradient(m.x, m.y, m.r * 0.2, m.x, m.y, m.r);
+        grad.addColorStop(0, `rgba(130, 145, 165, ${m.o})`);
+        grad.addColorStop(0.8, `rgba(150, 165, 185, ${m.o * 0.6})`);
+        grad.addColorStop(1, 'rgba(240, 244, 250, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Subtle craters
+      for (let i = 0; i < 35; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const cr = 4 + Math.random() * 12;
+        ctx.strokeStyle = 'rgba(100, 115, 135, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
     /* =========================================================================
        THREE.JS SCENE, CAMERA & RENDERER SETUP (RESPONSIVE)
        ========================================================================= */
@@ -1897,11 +2011,11 @@
 
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#14181f');
-    scene.fog = new THREE.FogExp2('#14181f', 0.035);
+    scene.background = new THREE.Color('#c8e4ff');
+    scene.fog = new THREE.Fog('#c8e4ff', 28, 120);
 
     const initCam = getResponsiveCameraSettings();
-    const camera = new THREE.PerspectiveCamera(initCam.fov, initCam.aspect, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(initCam.fov, initCam.aspect, 0.1, 400);
     camera.position.set(
       3.8 * initCam.distFactor,
       2.5 * initCam.distFactor,
@@ -1921,7 +2035,7 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
     controls.minDistance = 1.8;
-    controls.maxDistance = 16.0;
+    controls.maxDistance = 22.0;
     controls.maxPolarAngle = Math.PI / 2 - 0.02; // Keep slightly above ground
     controls.target.set(0, 1.40, 0);
     controls.touches = {
@@ -1953,32 +2067,37 @@
     /* =========================================================================
        LIGHTING SETUP
        ========================================================================= */
-    const hemiLight = new THREE.HemisphereLight(0xfff5e6, 0x3d4835, 0.7);
+    const hemiLight = new THREE.HemisphereLight(0xd2e8ff, 0x43662d, 0.75);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfffaed, 1.6);
-    dirLight.position.set(5, 8, 4);
+    const dirLight = new THREE.DirectionalLight(0xfffcf2, 1.65);
+    dirLight.position.set(20, 28, 16);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 25;
-    dirLight.shadow.camera.left = -4;
-    dirLight.shadow.camera.right = 4;
-    dirLight.shadow.camera.top = 4;
-    dirLight.shadow.camera.bottom = -4;
+    dirLight.shadow.camera.far = 60;
+    dirLight.shadow.camera.left = -12;
+    dirLight.shadow.camera.right = 12;
+    dirLight.shadow.camera.top = 12;
+    dirLight.shadow.camera.bottom = -12;
     dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0xb4d8ff, 0.45);
-    fillLight.position.set(-5, 4, -4);
+    const fillLight = new THREE.DirectionalLight(0xbcdcff, 0.45);
+    fillLight.position.set(-8, 6, -8);
     scene.add(fillLight);
 
     // Warm cozy interior lamp inside the house
-    const interiorLight = new THREE.PointLight(0xffaa44, 2.2, 4.0, 1.5);
+    const interiorLight = new THREE.PointLight(0xffaa44, 2.0, 4.0, 1.5);
     interiorLight.position.set(0, 1.1, 0);
     interiorLight.castShadow = true;
     scene.add(interiorLight);
+
+    // Entrance lantern on the doghouse porch
+    const lanternLight = new THREE.PointLight(0xffa834, 0.0, 4.0, 1.8);
+    lanternLight.position.set(0, 1.95, 1.45);
+    scene.add(lanternLight);
 
     /* =========================================================================
        MATERIALS SETUP
@@ -2669,6 +2788,512 @@
     });
 
     /* =========================================================================
+       EXPANDED LANDSCAPE & SKY ENVIRONMENT (GROUND, TREES, SKYDOME, CELESTIAL)
+       ========================================================================= */
+    const landscapeGroup = new THREE.Group();
+    const skyGroup = new THREE.Group();
+    scene.add(landscapeGroup);
+    scene.add(skyGroup);
+
+    // 1. Procedural Textures needed for landscape
+    const grassTex = createGrassTexture();
+    const glowTex = createRadialGlowTexture();
+    const moonTex = createMoonTexture();
+
+    // 2. Skydome (Custom Shader with dynamic horizon gradient)
+    const skyGeo = new THREE.SphereGeometry(140, 32, 20);
+    const skyMat = new THREE.ShaderMaterial({
+      uniforms: {
+        topColor: { value: new THREE.Color('#1e6cd9') },
+        bottomColor: { value: new THREE.Color('#c8e4ff') },
+        offset: { value: 6.0 },
+        exponent: { value: 0.65 }
+      },
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+          float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+          gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+      `,
+      side: THREE.BackSide,
+      depthWrite: false
+    });
+    const skyDome = new THREE.Mesh(skyGeo, skyMat);
+    skyGroup.add(skyDome);
+
+    // 3. Sun System (Glowing Sphere + Corona Glow Billboard)
+    const sunGroup = new THREE.Group();
+    const sunGeo = new THREE.SphereGeometry(4.2, 24, 24);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xfffbee });
+    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+    sunGroup.add(sunMesh);
+
+    const sunGlowMat = new THREE.SpriteMaterial({
+      map: glowTex,
+      color: 0xffdd77,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const sunGlow = new THREE.Sprite(sunGlowMat);
+    sunGlow.scale.set(34, 34, 1);
+    sunGroup.add(sunGlow);
+    sunGroup.position.set(22, 38, 16);
+    skyGroup.add(sunGroup);
+
+    // 4. Moon System (Cratered Sphere + Pale Blue Halo Glow)
+    const moonGroup = new THREE.Group();
+    const moonGeo = new THREE.SphereGeometry(3.6, 24, 24);
+    const moonMat = new THREE.MeshBasicMaterial({ map: moonTex, color: 0xedf3ff });
+    const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    moonMesh.rotation.y = 0.8;
+    moonGroup.add(moonMesh);
+
+    const moonGlowMat = new THREE.SpriteMaterial({
+      map: glowTex,
+      color: 0x8ec3ff,
+      transparent: true,
+      opacity: 0.0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const moonGlow = new THREE.Sprite(moonGlowMat);
+    moonGlow.scale.set(24, 24, 1);
+    moonGroup.add(moonGlow);
+    moonGroup.position.set(-30, -50, -32);
+    skyGroup.add(moonGroup);
+
+    // 5. Starfield (1,200 Twinkling Stars in upper hemisphere)
+    const starCount = 1200;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const starPhases = new Float32Array(starCount);
+
+    for (let i = 0; i < starCount; i++) {
+      const u = Math.random();
+      const v = Math.random() * 0.85 + 0.08;
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 126 + Math.random() * 8;
+
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = Math.abs(r * Math.cos(phi)) + 4;
+      const z = r * Math.sin(phi) * Math.sin(theta);
+
+      starPositions[i * 3] = x;
+      starPositions[i * 3 + 1] = y;
+      starPositions[i * 3 + 2] = z;
+      starPhases[i] = Math.random() * Math.PI * 2;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+
+    const starMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.0,
+      sizeAttenuation: false,
+      depthWrite: false
+    });
+    const starfield = new THREE.Points(starGeo, starMat);
+    skyGroup.add(starfield);
+
+    // 6. Fluffy Stylized 3D Clouds
+    const cloudGroup = new THREE.Group();
+    const matCloud = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.9,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.92
+    });
+
+    function createSingleCloud(scale) {
+      const g = new THREE.Group();
+      const puffGeo = new THREE.SphereGeometry(1.5, 12, 12);
+      const puffs = [
+        { x: 0, y: 0, z: 0, s: 1.6 },
+        { x: 1.3, y: -0.2, z: 0.1, s: 1.25 },
+        { x: -1.3, y: -0.25, z: -0.1, s: 1.2 },
+        { x: 0.6, y: 0.7, z: 0.1, s: 1.1 },
+        { x: -0.5, y: 0.5, z: -0.1, s: 1.05 },
+        { x: 0.2, y: -0.4, z: 0.4, s: 1.1 }
+      ];
+      puffs.forEach(p => {
+        const puff = new THREE.Mesh(puffGeo, matCloud);
+        puff.position.set(p.x * scale, p.y * scale, p.z * scale);
+        puff.scale.setScalar(p.s * scale);
+        g.add(puff);
+      });
+      return g;
+    }
+
+    const cloudConfigs = [
+      { r: 42, theta: 0.3, y: 26, s: 1.6 },
+      { r: 48, theta: 1.1, y: 29, s: 2.0 },
+      { r: 55, theta: 1.8, y: 24, s: 1.8 },
+      { r: 40, theta: 2.6, y: 28, s: 1.4 },
+      { r: 52, theta: 3.4, y: 25, s: 2.1 },
+      { r: 46, theta: 4.2, y: 30, s: 1.5 },
+      { r: 58, theta: 5.0, y: 27, s: 2.2 },
+      { r: 44, theta: 5.8, y: 29, s: 1.7 },
+      { r: 65, theta: 0.8, y: 32, s: 2.4 },
+      { r: 68, theta: 2.2, y: 34, s: 2.5 },
+      { r: 62, theta: 3.9, y: 31, s: 2.3 },
+      { r: 66, theta: 5.4, y: 33, s: 2.6 }
+    ];
+
+    cloudConfigs.forEach(cfg => {
+      const c = createSingleCloud(cfg.s);
+      c.position.set(
+        cfg.r * Math.cos(cfg.theta),
+        cfg.y,
+        cfg.r * Math.sin(cfg.theta)
+      );
+      c.rotation.y = Math.random() * Math.PI * 2;
+      cloudGroup.add(c);
+    });
+    skyGroup.add(cloudGroup);
+
+    // 7. Extended Natural Terrain with Rolling Hills & Meadow
+    const terrainGeo = new THREE.PlaneGeometry(160, 160, 56, 56);
+    terrainGeo.rotateX(-Math.PI / 2);
+
+    const terrainPos = terrainGeo.attributes.position;
+    for (let i = 0; i < terrainPos.count; i++) {
+      const x = terrainPos.getX(i);
+      const z = terrainPos.getZ(i);
+      const dist = Math.sqrt(x * x + z * z);
+      let elevation = 0;
+
+      if (dist > 4.2) {
+        const angle = Math.atan2(z, x);
+        const wave1 = Math.sin(x * 0.07) * Math.cos(z * 0.07) * 1.8;
+        const wave2 = Math.sin(dist * 0.11 + angle * 2.0) * 1.1;
+        const outerRise = Math.pow(Math.max(0, dist - 4.2) / 48.0, 1.35) * 3.2;
+        const blend = Math.min(1.0, (dist - 4.2) / 6.0);
+        elevation = (wave1 + wave2 + outerRise) * blend;
+
+        if (dist > 62) {
+          elevation *= Math.max(0.0, 1.0 - (dist - 62) / 18.0);
+        }
+      }
+      terrainPos.setY(i, -0.16 + elevation);
+    }
+    terrainGeo.computeVertexNormals();
+
+    const matTerrain = new THREE.MeshStandardMaterial({
+      map: grassTex,
+      color: 0x5a9442,
+      roughness: 0.92,
+      metalness: 0.02
+    });
+    const terrainMesh = new THREE.Mesh(terrainGeo, matTerrain);
+    terrainMesh.receiveShadow = true;
+    landscapeGroup.add(terrainMesh);
+
+    // 8. Stylized Fairy-Tale Forest Trees (Oaks & Pines)
+    const treeGroup = new THREE.Group();
+    const matTreeTrunk = new THREE.MeshStandardMaterial({ color: 0x563e2d, roughness: 0.9 });
+    const matOakFoliage = new THREE.MeshStandardMaterial({ color: 0x3d7a34, roughness: 0.85 });
+    const matPineFoliage = new THREE.MeshStandardMaterial({ color: 0x275e38, roughness: 0.85 });
+
+    function createOakTree(scale) {
+      const g = new THREE.Group();
+      const trunkGeo = new THREE.CylinderGeometry(0.12 * scale, 0.18 * scale, 1.4 * scale, 8);
+      const trunk = new THREE.Mesh(trunkGeo, matTreeTrunk);
+      trunk.position.y = 0.7 * scale;
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      g.add(trunk);
+
+      const sphereGeo = new THREE.SphereGeometry(0.75 * scale, 12, 10);
+      const puff1 = new THREE.Mesh(sphereGeo, matOakFoliage);
+      puff1.position.set(0, 1.6 * scale, 0);
+      puff1.scale.set(1.1, 0.95, 1.05);
+      puff1.castShadow = true;
+      g.add(puff1);
+
+      const puff2 = new THREE.Mesh(sphereGeo, matOakFoliage);
+      puff2.position.set(0.35 * scale, 1.85 * scale, 0.2 * scale);
+      puff2.scale.set(0.85, 0.85, 0.85);
+      puff2.castShadow = true;
+      g.add(puff2);
+
+      const puff3 = new THREE.Mesh(sphereGeo, matOakFoliage);
+      puff3.position.set(-0.35 * scale, 1.75 * scale, -0.2 * scale);
+      puff3.scale.set(0.85, 0.85, 0.85);
+      puff3.castShadow = true;
+      g.add(puff3);
+
+      return g;
+    }
+
+    function createPineTree(scale) {
+      const g = new THREE.Group();
+      const trunkGeo = new THREE.CylinderGeometry(0.09 * scale, 0.15 * scale, 1.0 * scale, 8);
+      const trunk = new THREE.Mesh(trunkGeo, matTreeTrunk);
+      trunk.position.y = 0.5 * scale;
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      g.add(trunk);
+
+      for (let t = 0; t < 3; t++) {
+        const coneGeo = new THREE.ConeGeometry((0.95 - t * 0.22) * scale, (1.1 - t * 0.15) * scale, 8);
+        const foliage = new THREE.Mesh(coneGeo, matPineFoliage);
+        foliage.position.y = (1.1 + t * 0.65) * scale;
+        foliage.castShadow = true;
+        g.add(foliage);
+      }
+      return g;
+    }
+
+    const treePositions = [
+      // Left side grove
+      { x: -7.5, z: 3.2, type: 'oak', s: 1.4 },
+      { x: -9.5, z: 0.8, type: 'pine', s: 1.7 },
+      { x: -8.0, z: -2.8, type: 'oak', s: 1.6 },
+      { x: -11.5, z: 4.5, type: 'pine', s: 2.1 },
+      { x: -13.0, z: -1.5, type: 'oak', s: 2.2 },
+      { x: -15.0, z: 3.0, type: 'pine', s: 2.4 },
+
+      // Right side grove
+      { x: 7.2, z: 2.8, type: 'pine', s: 1.5 },
+      { x: 9.0, z: -0.5, type: 'oak', s: 1.7 },
+      { x: 8.2, z: -3.5, type: 'pine', s: 1.8 },
+      { x: 11.0, z: 3.5, type: 'oak', s: 2.0 },
+      { x: 13.5, z: -2.0, type: 'pine', s: 2.3 },
+      { x: 14.5, z: 2.0, type: 'oak', s: 2.4 },
+
+      // Back woods
+      { x: -3.5, z: -7.0, type: 'oak', s: 1.5 },
+      { x: 0.5, z: -8.5, type: 'pine', s: 1.9 },
+      { x: 4.0, z: -7.5, type: 'oak', s: 1.6 },
+      { x: -6.5, z: -10.5, type: 'pine', s: 2.2 },
+      { x: 2.0, z: -11.5, type: 'oak', s: 2.3 },
+      { x: 6.5, z: -10.0, type: 'pine', s: 2.1 },
+      { x: -1.5, z: -14.0, type: 'oak', s: 2.6 },
+
+      // Far background rolling ridge
+      { x: -18.0, z: -12.0, type: 'pine', s: 2.8 },
+      { x: -22.0, z: -4.0, type: 'oak', s: 3.0 },
+      { x: 19.0, z: -11.0, type: 'pine', s: 2.9 },
+      { x: 23.0, z: -2.0, type: 'oak', s: 3.1 },
+      { x: 0.0, z: -21.0, type: 'pine', s: 3.2 }
+    ];
+
+    treePositions.forEach(tp => {
+      const tree = tp.type === 'oak' ? createOakTree(tp.s) : createPineTree(tp.s);
+      const dist = Math.sqrt(tp.x * tp.x + tp.z * tp.z);
+      const angle = Math.atan2(tp.z, tp.x);
+      let elev = 0;
+      if (dist > 4.2) {
+        const wave1 = Math.sin(tp.x * 0.07) * Math.cos(tp.z * 0.07) * 1.8;
+        const wave2 = Math.sin(dist * 0.11 + angle * 2.0) * 1.1;
+        const outerRise = Math.pow(Math.max(0, dist - 4.2) / 48.0, 1.35) * 3.2;
+        elev = (wave1 + wave2 + outerRise) * Math.min(1.0, (dist - 4.2) / 6.0);
+      }
+      tree.position.set(tp.x, -0.15 + elev, tp.z);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      treeGroup.add(tree);
+    });
+    landscapeGroup.add(treeGroup);
+
+    // 9. Bioluminescent Fairy Little Mushrooms
+    const mushroomsGroup = new THREE.Group();
+    const matMiniMushroomCap = new THREE.MeshStandardMaterial({
+      color: 0xdd3228,
+      roughness: 0.45,
+      metalness: 0.05,
+      emissive: 0x000000,
+      emissiveIntensity: 0.0
+    });
+    const matMiniMushroomStem = new THREE.MeshStandardMaterial({ color: 0xf5eedc, roughness: 0.7 });
+
+    const miniMushroomLocations = [
+      { x: 2.2, z: 2.2, s: 0.16 },
+      { x: 2.45, z: 2.0, s: 0.12 },
+      { x: -1.9, z: 2.4, s: 0.15 },
+      { x: -2.1, z: 2.2, s: 0.11 },
+      { x: -2.8, z: 0.8, s: 0.18 },
+      { x: -2.95, z: 1.05, s: 0.13 },
+      { x: 2.9, z: -0.6, s: 0.20 },
+      { x: 3.1, z: -0.4, s: 0.14 },
+      { x: -1.5, z: -2.9, s: 0.17 },
+      { x: 1.2, z: -3.1, s: 0.19 },
+      { x: -3.8, z: 2.2, s: 0.22 },
+      { x: 3.6, z: 2.5, s: 0.21 }
+    ];
+
+    miniMushroomLocations.forEach(m => {
+      const g = new THREE.Group();
+      g.position.set(m.x, 0.0, m.z);
+
+      const stemGeo = new THREE.CylinderGeometry(0.15 * m.s, 0.25 * m.s, 0.9 * m.s, 10);
+      const stem = new THREE.Mesh(stemGeo, matMiniMushroomStem);
+      stem.position.y = 0.45 * m.s;
+      stem.castShadow = true;
+      g.add(stem);
+
+      const capGeo = new THREE.SphereGeometry(0.55 * m.s, 14, 12, 0, Math.PI * 2, 0, Math.PI * 0.55);
+      const cap = new THREE.Mesh(capGeo, matMiniMushroomCap);
+      cap.position.y = 0.85 * m.s;
+      cap.castShadow = true;
+      g.add(cap);
+
+      mushroomsGroup.add(g);
+    });
+    landscapeGroup.add(mushroomsGroup);
+
+    // 10. Colorful Garden Wildflowers
+    const flowersGroup = new THREE.Group();
+    const flowerColors = [0xffdd55, 0xffffff, 0xe8a4ff, 0xff9ec7, 0x82d4ff];
+    const flowerMats = flowerColors.map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6 }));
+
+    for (let fl = 0; fl < 36; fl++) {
+      const angle = (fl / 36) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const dist = 3.0 + Math.random() * 2.2;
+      const fx = Math.cos(angle) * dist;
+      const fz = Math.sin(angle) * dist;
+      if (fz > 1.8 && Math.abs(fx) < 1.0) continue;
+
+      const fg = new THREE.Group();
+      fg.position.set(fx, 0.02, fz);
+
+      const petalMat = flowerMats[Math.floor(Math.random() * flowerMats.length)];
+      const petalGeo = new THREE.ConeGeometry(0.06, 0.12, 5);
+      for (let p = 0; p < 4; p++) {
+        const petal = new THREE.Mesh(petalGeo, petalMat);
+        petal.rotation.y = (p / 4) * Math.PI * 2;
+        petal.rotation.x = 0.6;
+        petal.position.y = 0.06;
+        fg.add(petal);
+      }
+
+      const centerGeo = new THREE.SphereGeometry(0.04, 6, 6);
+      const center = new THREE.Mesh(centerGeo, flowerMats[0]);
+      center.position.y = 0.08;
+      fg.add(center);
+
+      flowersGroup.add(fg);
+    }
+    landscapeGroup.add(flowersGroup);
+
+    // 11. Rustic Wooden Fence along the garden edge
+    const fenceGroup = new THREE.Group();
+    const matFence = new THREE.MeshStandardMaterial({ color: 0x8d6e53, roughness: 0.85 });
+    const fencePostGeo = new THREE.BoxGeometry(0.08, 0.6, 0.08);
+    const fenceRailGeo = new THREE.BoxGeometry(0.72, 0.05, 0.04);
+
+    for (let f = 0; f < 10; f++) {
+      const a = (f < 5) ? (-0.85 - f * 0.28) : (0.85 + (f - 5) * 0.28);
+      const r = 3.9;
+      const px = Math.sin(a) * r;
+      const pz = -Math.cos(a) * r;
+
+      const post = new THREE.Mesh(fencePostGeo, matFence);
+      post.position.set(px, 0.25, pz);
+      post.rotation.y = -a;
+      post.castShadow = true;
+      post.receiveShadow = true;
+      fenceGroup.add(post);
+
+      const rail1 = new THREE.Mesh(fenceRailGeo, matFence);
+      rail1.position.set(px, 0.38, pz);
+      rail1.rotation.y = -a + Math.PI / 2;
+      rail1.castShadow = true;
+      fenceGroup.add(rail1);
+
+      const rail2 = new THREE.Mesh(fenceRailGeo, matFence);
+      rail2.position.set(px, 0.18, pz);
+      rail2.rotation.y = -a + Math.PI / 2;
+      rail2.castShadow = true;
+      fenceGroup.add(rail2);
+    }
+    landscapeGroup.add(fenceGroup);
+
+    // 12. Floating Fireflies Particle Swarm
+    const fireflyCount = 65;
+    const fireflyGeo = new THREE.BufferGeometry();
+    const fireflyPos = new Float32Array(fireflyCount * 3);
+    const fireflyData = [];
+
+    for (let i = 0; i < fireflyCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const rad = 1.6 + Math.random() * 6.5;
+      const x = Math.cos(angle) * rad;
+      const z = Math.sin(angle) * rad;
+      const y = 0.3 + Math.random() * 2.2;
+
+      fireflyPos[i * 3] = x;
+      fireflyPos[i * 3 + 1] = y;
+      fireflyPos[i * 3 + 2] = z;
+
+      fireflyData.push({
+        baseX: x,
+        baseY: y,
+        baseZ: z,
+        speed: 0.6 + Math.random() * 1.2,
+        phase: Math.random() * Math.PI * 2,
+        range: 0.3 + Math.random() * 0.7
+      });
+    }
+    fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fireflyPos, 3));
+
+    const fireflyMat = new THREE.PointsMaterial({
+      color: 0xeeff77,
+      size: 5.5,
+      map: glowTex,
+      transparent: true,
+      opacity: 0.0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const firefliesGroup = new THREE.Points(fireflyGeo, fireflyMat);
+    landscapeGroup.add(firefliesGroup);
+
+    // 13. Entrance Porch Lantern fixture
+    const porchLanternGroup = new THREE.Group();
+    porchLanternGroup.position.set(0, 1.95, 1.45);
+    const matLanternMetal = new THREE.MeshStandardMaterial({ color: 0x332a22, metalness: 0.8, roughness: 0.3 });
+    const porchLanternArmGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.22, 8);
+    const porchLanternArm = new THREE.Mesh(porchLanternArmGeo, matLanternMetal);
+    porchLanternArm.rotation.x = Math.PI / 2;
+    porchLanternGroup.add(porchLanternArm);
+
+    const porchLanternCapGeo = new THREE.ConeGeometry(0.12, 0.08, 6);
+    const porchLanternCap = new THREE.Mesh(porchLanternCapGeo, matLanternMetal);
+    porchLanternCap.position.set(0, -0.02, 0.1);
+    porchLanternGroup.add(porchLanternCap);
+
+    const porchLanternGlassGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.12, 6);
+    const matLanternGlass = new THREE.MeshStandardMaterial({
+      color: 0xffe28a,
+      emissive: 0xffb833,
+      emissiveIntensity: 0.0,
+      transparent: true,
+      opacity: 0.85
+    });
+    const porchLanternGlass = new THREE.Mesh(porchLanternGlassGeo, matLanternGlass);
+    porchLanternGlass.position.set(0, -0.1, 0.1);
+    porchLanternGroup.add(porchLanternGlass);
+    houseGroup.add(porchLanternGroup);
+
+    /* =========================================================================
        BLUEPRINT TECHNICAL DIMENSION LINES
        ========================================================================= */
     function createBlueprintDimensionLines() {
@@ -2712,6 +3337,7 @@
        VIEW MODES MANAGEMENT
        ========================================================================= */
     let currentMode = 'realistic';
+    let currentEnv = 'day';
 
     function setViewMode(mode) {
       currentMode = mode;
@@ -2724,8 +3350,13 @@
       const markers = document.querySelectorAll('.annotation-marker');
 
       if (mode === 'blueprint') {
+        if (typeof landscapeGroup !== 'undefined' && landscapeGroup) landscapeGroup.visible = false;
+        if (typeof skyGroup !== 'undefined' && skyGroup) skyGroup.visible = false;
+
         scene.background.set('#0b2238');
         scene.fog.color.set('#0b2238');
+        scene.fog.near = 15;
+        scene.fog.far = 45;
         blueprintLinesGroup.visible = true;
 
         applyBlueprintMaterials(houseGroup);
@@ -2736,9 +3367,15 @@
         hemiLight.intensity = 0.3;
         dirLight.intensity = 0.5;
         interiorLight.color.set('#00e5ff');
+        if (typeof lanternLight !== 'undefined' && lanternLight) lanternLight.intensity = 0;
       } else if (mode === 'xray') {
+        if (typeof landscapeGroup !== 'undefined' && landscapeGroup) landscapeGroup.visible = true;
+        if (typeof skyGroup !== 'undefined' && skyGroup) skyGroup.visible = true;
+
         scene.background.set('#141922');
         scene.fog.color.set('#141922');
+        scene.fog.near = 25;
+        scene.fog.far = 105;
         blueprintLinesGroup.visible = false;
 
         applyXRayMaterials(houseGroup);
@@ -2750,8 +3387,9 @@
         dirLight.intensity = 1.0;
         interiorLight.color.set('#ffaa44');
       } else { // realistic
-        scene.background.set('#14181f');
-        scene.fog.color.set('#14181f');
+        if (typeof landscapeGroup !== 'undefined' && landscapeGroup) landscapeGroup.visible = true;
+        if (typeof skyGroup !== 'undefined' && skyGroup) skyGroup.visible = true;
+
         blueprintLinesGroup.visible = false;
 
         restoreRealisticMaterials();
@@ -2762,9 +3400,11 @@
 
         groundMesh.visible = true;
         if (typeof puppyGroup !== 'undefined' && puppyGroup) puppyGroup.visible = true;
-        hemiLight.intensity = 0.7;
-        dirLight.intensity = 1.6;
-        interiorLight.color.set('#ffaa44');
+
+        // Restore lighting environment to current atmosphere
+        if (typeof setLightingEnvironment === 'function') {
+          setLightingEnvironment(currentEnv, false);
+        }
       }
     }
 
@@ -2916,26 +3556,228 @@
       });
     });
 
-    function setLightingEnvironment(env) {
-      playSound('click');
+    function setLightingEnvironment(env, instant = false) {
+      if (!instant) playSound('click');
+      currentEnv = env;
+      const dur = instant ? 0.0 : 1.1;
+      const ease = 'power2.inOut';
+
       if (env === 'day') {
-        gsap.to(dirLight.color, { r: 1.0, g: 0.98, b: 0.93, duration: 0.8 });
-        gsap.to(dirLight, { intensity: 1.6, duration: 0.8 });
-        gsap.to(hemiLight.color, { r: 1.0, g: 0.96, b: 0.9, duration: 0.8 });
-        gsap.to(scene.background, { r: 0.08, g: 0.10, b: 0.13, duration: 0.8 });
-        interiorLight.intensity = 2.2;
+        // 1. Skydome Colors
+        if (typeof skyMat !== 'undefined' && skyMat) {
+          gsap.to(skyMat.uniforms.topColor.value, { r: 0.118, g: 0.424, b: 0.851, duration: dur, ease });
+          gsap.to(skyMat.uniforms.bottomColor.value, { r: 0.784, g: 0.894, b: 1.0, duration: dur, ease });
+        }
+
+        // 2. Sun & Moon Celestial Positioning
+        if (typeof sunGroup !== 'undefined' && sunGroup) {
+          gsap.to(sunGroup.position, { x: 22, y: 38, z: 16, duration: dur, ease });
+          gsap.to(sunMesh.scale, { x: 1.0, y: 1.0, z: 1.0, duration: dur, ease });
+          gsap.to(sunMat.color, { r: 1.0, g: 0.984, b: 0.933, duration: dur, ease });
+          gsap.to(sunGlowMat, { opacity: 0.85, duration: dur, ease });
+        }
+        if (typeof moonGroup !== 'undefined' && moonGroup) {
+          gsap.to(moonGroup.position, { x: -30, y: -50, z: -32, duration: dur, ease });
+          gsap.to(moonGlowMat, { opacity: 0.0, duration: dur, ease });
+        }
+
+        // 3. Stars & Clouds & Fireflies
+        if (typeof starMat !== 'undefined' && starMat) {
+          gsap.to(starMat, { opacity: 0.0, duration: dur, ease });
+        }
+        if (typeof matCloud !== 'undefined' && matCloud) {
+          gsap.to(matCloud.color, { r: 1.0, g: 1.0, b: 1.0, duration: dur, ease });
+          gsap.to(matCloud, { opacity: 0.92, duration: dur, ease });
+        }
+        if (typeof fireflyMat !== 'undefined' && fireflyMat) {
+          gsap.to(fireflyMat, { opacity: 0.0, duration: dur, ease });
+        }
+
+        // 4. Ground Terrain & Forest Materials
+        if (typeof matTerrain !== 'undefined' && matTerrain) {
+          gsap.to(matTerrain.color, { r: 0.353, g: 0.580, b: 0.259, duration: dur, ease });
+        }
+        if (typeof matOakFoliage !== 'undefined' && matOakFoliage) {
+          gsap.to(matOakFoliage.color, { r: 0.239, g: 0.478, b: 0.204, duration: dur, ease });
+        }
+        if (typeof matPineFoliage !== 'undefined' && matPineFoliage) {
+          gsap.to(matPineFoliage.color, { r: 0.153, g: 0.369, b: 0.220, duration: dur, ease });
+        }
+        if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
+          gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.0, duration: dur, ease });
+        }
+
+        // 5. Lighting Setup
+        gsap.to(dirLight.position, { x: 20, y: 28, z: 16, duration: dur, ease });
+        gsap.to(dirLight.color, { r: 1.0, g: 0.988, b: 0.949, duration: dur, ease });
+        gsap.to(dirLight, { intensity: 1.65, duration: dur, ease });
+
+        gsap.to(hemiLight.color, { r: 0.824, g: 0.910, b: 1.0, duration: dur, ease });
+        gsap.to(hemiLight.groundColor, { r: 0.263, g: 0.400, b: 0.176, duration: dur, ease });
+        gsap.to(hemiLight, { intensity: 0.75, duration: dur, ease });
+
+        gsap.to(fillLight.color, { r: 0.737, g: 0.863, b: 1.0, duration: dur, ease });
+        gsap.to(fillLight, { intensity: 0.45, duration: dur, ease });
+
+        gsap.to(interiorLight, { intensity: 1.8, duration: dur, ease });
+        if (typeof lanternLight !== 'undefined' && lanternLight) {
+          gsap.to(lanternLight, { intensity: 0.0, duration: dur, ease });
+        }
+        if (typeof matLanternGlass !== 'undefined' && matLanternGlass) {
+          gsap.to(matLanternGlass, { emissiveIntensity: 0.0, duration: dur, ease });
+        }
+
+        // 6. Fog & Background
+        if (currentMode === 'realistic') {
+          gsap.to(scene.background, { r: 0.784, g: 0.894, b: 1.0, duration: dur, ease });
+          gsap.to(scene.fog.color, { r: 0.784, g: 0.894, b: 1.0, duration: dur, ease });
+          gsap.to(scene.fog, { near: 28, far: 120, duration: dur, ease });
+        }
+
       } else if (env === 'sunset') {
-        gsap.to(dirLight.color, { r: 1.0, g: 0.55, b: 0.25, duration: 0.8 });
-        gsap.to(dirLight, { intensity: 1.8, duration: 0.8 });
-        gsap.to(hemiLight.color, { r: 0.95, g: 0.5, b: 0.35, duration: 0.8 });
-        gsap.to(scene.background, { r: 0.14, g: 0.07, b: 0.05, duration: 0.8 });
-        interiorLight.intensity = 3.0;
+        // 1. Skydome Colors
+        if (typeof skyMat !== 'undefined' && skyMat) {
+          gsap.to(skyMat.uniforms.topColor.value, { r: 0.204, g: 0.094, b: 0.329, duration: dur, ease });
+          gsap.to(skyMat.uniforms.bottomColor.value, { r: 1.0, g: 0.412, b: 0.216, duration: dur, ease });
+        }
+
+        // 2. Sun & Moon Celestial Positioning (Large setting sun, low on horizon)
+        if (typeof sunGroup !== 'undefined' && sunGroup) {
+          gsap.to(sunGroup.position, { x: 48, y: 8, z: -20, duration: dur, ease });
+          gsap.to(sunMesh.scale, { x: 1.6, y: 1.6, z: 1.6, duration: dur, ease });
+          gsap.to(sunMat.color, { r: 1.0, g: 0.333, b: 0.133, duration: dur, ease });
+          gsap.to(sunGlowMat, { opacity: 0.95, duration: dur, ease });
+        }
+        if (typeof moonGroup !== 'undefined' && moonGroup) {
+          gsap.to(moonGroup.position, { x: -28, y: 6, z: -30, duration: dur, ease });
+          gsap.to(moonGlowMat, { opacity: 0.25, duration: dur, ease });
+        }
+
+        // 3. Stars & Clouds & Fireflies
+        if (typeof starMat !== 'undefined' && starMat) {
+          gsap.to(starMat, { opacity: 0.22, duration: dur, ease });
+        }
+        if (typeof matCloud !== 'undefined' && matCloud) {
+          gsap.to(matCloud.color, { r: 1.0, g: 0.627, b: 0.478, duration: dur, ease });
+          gsap.to(matCloud, { opacity: 0.95, duration: dur, ease });
+        }
+        if (typeof fireflyMat !== 'undefined' && fireflyMat) {
+          gsap.to(fireflyMat, { opacity: 0.45, duration: dur, ease });
+        }
+
+        // 4. Ground Terrain & Forest Materials
+        if (typeof matTerrain !== 'undefined' && matTerrain) {
+          gsap.to(matTerrain.color, { r: 0.369, g: 0.329, b: 0.157, duration: dur, ease });
+        }
+        if (typeof matOakFoliage !== 'undefined' && matOakFoliage) {
+          gsap.to(matOakFoliage.color, { r: 0.361, g: 0.298, b: 0.157, duration: dur, ease });
+        }
+        if (typeof matPineFoliage !== 'undefined' && matPineFoliage) {
+          gsap.to(matPineFoliage.color, { r: 0.227, g: 0.259, b: 0.141, duration: dur, ease });
+        }
+        if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
+          matMiniMushroomCap.emissive.set('#ff4411');
+          gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.4, duration: dur, ease });
+        }
+
+        // 5. Lighting Setup (Dramatic low-angle sunset shadows)
+        gsap.to(dirLight.position, { x: 26, y: 7, z: -18, duration: dur, ease });
+        gsap.to(dirLight.color, { r: 1.0, g: 0.459, b: 0.220, duration: dur, ease });
+        gsap.to(dirLight, { intensity: 1.85, duration: dur, ease });
+
+        gsap.to(hemiLight.color, { r: 1.0, g: 0.584, b: 0.369, duration: dur, ease });
+        gsap.to(hemiLight.groundColor, { r: 0.267, g: 0.141, b: 0.086, duration: dur, ease });
+        gsap.to(hemiLight, { intensity: 0.8, duration: dur, ease });
+
+        gsap.to(fillLight.color, { r: 0.502, g: 0.251, b: 0.439, duration: dur, ease });
+        gsap.to(fillLight, { intensity: 0.55, duration: dur, ease });
+
+        gsap.to(interiorLight, { intensity: 2.8, duration: dur, ease });
+        if (typeof lanternLight !== 'undefined' && lanternLight) {
+          gsap.to(lanternLight, { intensity: 1.5, duration: dur, ease });
+        }
+        if (typeof matLanternGlass !== 'undefined' && matLanternGlass) {
+          gsap.to(matLanternGlass, { emissiveIntensity: 0.5, duration: dur, ease });
+        }
+
+        // 6. Fog & Background
+        if (currentMode === 'realistic') {
+          gsap.to(scene.background, { r: 0.514, g: 0.271, b: 0.278, duration: dur, ease });
+          gsap.to(scene.fog.color, { r: 0.514, g: 0.271, b: 0.278, duration: dur, ease });
+          gsap.to(scene.fog, { near: 26, far: 110, duration: dur, ease });
+        }
+
       } else if (env === 'night') {
-        gsap.to(dirLight.color, { r: 0.3, g: 0.45, b: 0.8, duration: 0.8 });
-        gsap.to(dirLight, { intensity: 0.4, duration: 0.8 });
-        gsap.to(hemiLight.color, { r: 0.15, g: 0.25, b: 0.4, duration: 0.8 });
-        gsap.to(scene.background, { r: 0.03, g: 0.05, b: 0.08, duration: 0.8 });
-        interiorLight.intensity = 4.5;
+        // 1. Skydome Colors
+        if (typeof skyMat !== 'undefined' && skyMat) {
+          gsap.to(skyMat.uniforms.topColor.value, { r: 0.012, g: 0.024, b: 0.067, duration: dur, ease });
+          gsap.to(skyMat.uniforms.bottomColor.value, { r: 0.051, g: 0.106, b: 0.200, duration: dur, ease });
+        }
+
+        // 2. Sun & Moon Celestial Positioning (Bright silvery moon high in the sky)
+        if (typeof sunGroup !== 'undefined' && sunGroup) {
+          gsap.to(sunGroup.position, { x: 0, y: -60, z: 0, duration: dur, ease });
+          gsap.to(sunMesh.scale, { x: 0.1, y: 0.1, z: 0.1, duration: dur, ease });
+          gsap.to(sunGlowMat, { opacity: 0.0, duration: dur, ease });
+        }
+        if (typeof moonGroup !== 'undefined' && moonGroup) {
+          gsap.to(moonGroup.position, { x: -30, y: 42, z: -32, duration: dur, ease });
+          gsap.to(moonGlowMat, { opacity: 0.85, duration: dur, ease });
+        }
+
+        // 3. Stars & Clouds & Fireflies
+        if (typeof starMat !== 'undefined' && starMat) {
+          gsap.to(starMat, { opacity: 0.95, duration: dur, ease });
+        }
+        if (typeof matCloud !== 'undefined' && matCloud) {
+          gsap.to(matCloud.color, { r: 0.125, g: 0.173, b: 0.259, duration: dur, ease });
+          gsap.to(matCloud, { opacity: 0.5, duration: dur, ease });
+        }
+        if (typeof fireflyMat !== 'undefined' && fireflyMat) {
+          gsap.to(fireflyMat, { opacity: 1.0, duration: dur, ease });
+        }
+
+        // 4. Ground Terrain & Forest Materials
+        if (typeof matTerrain !== 'undefined' && matTerrain) {
+          gsap.to(matTerrain.color, { r: 0.075, g: 0.141, b: 0.106, duration: dur, ease });
+        }
+        if (typeof matOakFoliage !== 'undefined' && matOakFoliage) {
+          gsap.to(matOakFoliage.color, { r: 0.086, g: 0.149, b: 0.110, duration: dur, ease });
+        }
+        if (typeof matPineFoliage !== 'undefined' && matPineFoliage) {
+          gsap.to(matPineFoliage.color, { r: 0.063, g: 0.118, b: 0.094, duration: dur, ease });
+        }
+        if (typeof matMiniMushroomCap !== 'undefined' && matMiniMushroomCap) {
+          matMiniMushroomCap.emissive.set('#11eebb');
+          gsap.to(matMiniMushroomCap, { emissiveIntensity: 0.9, duration: dur, ease });
+        }
+
+        // 5. Lighting Setup (Soft cool moonlight + cozy glowing porch and interior)
+        gsap.to(dirLight.position, { x: -18, y: 22, z: -18, duration: dur, ease });
+        gsap.to(dirLight.color, { r: 0.400, g: 0.553, b: 0.812, duration: dur, ease });
+        gsap.to(dirLight, { intensity: 0.48, duration: dur, ease });
+
+        gsap.to(hemiLight.color, { r: 0.098, g: 0.153, b: 0.259, duration: dur, ease });
+        gsap.to(hemiLight.groundColor, { r: 0.035, g: 0.078, b: 0.094, duration: dur, ease });
+        gsap.to(hemiLight, { intensity: 0.35, duration: dur, ease });
+
+        gsap.to(fillLight.color, { r: 0.078, g: 0.125, b: 0.208, duration: dur, ease });
+        gsap.to(fillLight, { intensity: 0.2, duration: dur, ease });
+
+        gsap.to(interiorLight, { intensity: 4.8, duration: dur, ease });
+        if (typeof lanternLight !== 'undefined' && lanternLight) {
+          gsap.to(lanternLight, { intensity: 3.5, duration: dur, ease });
+        }
+        if (typeof matLanternGlass !== 'undefined' && matLanternGlass) {
+          gsap.to(matLanternGlass, { emissiveIntensity: 1.0, duration: dur, ease });
+        }
+
+        // 6. Fog & Background
+        if (currentMode === 'realistic') {
+          gsap.to(scene.background, { r: 0.047, g: 0.098, b: 0.176, duration: dur, ease });
+          gsap.to(scene.fog.color, { r: 0.047, g: 0.098, b: 0.176, duration: dur, ease });
+          gsap.to(scene.fog, { near: 24, far: 95, duration: dur, ease });
+        }
       }
     }
 
@@ -3221,7 +4063,7 @@
     });
 
     /* =========================================================================
-       ANIMATION LOOP
+       ANIMATION LOOP & ENVIRONMENT INITIALIZATION
        ========================================================================= */
     let puppyTime = 0;
     function animate() {
@@ -3241,10 +4083,46 @@
         puppyGroup.position.y = 0.02 + Math.sin(puppyTime * 3.5) * 0.005;
       }
 
+      // Clouds Gentle Celestial Drift
+      if (typeof cloudGroup !== 'undefined' && cloudGroup) {
+        cloudGroup.rotation.y += 0.00025;
+      }
+
+      // Fireflies 3D Flitting & Floating
+      if (typeof firefliesGroup !== 'undefined' && firefliesGroup && typeof fireflyData !== 'undefined' && typeof fireflyMat !== 'undefined' && fireflyMat.opacity > 0.02) {
+        const pArr = fireflyGeo.attributes.position.array;
+        for (let i = 0; i < fireflyData.length; i++) {
+          const d = fireflyData[i];
+          const t = puppyTime * d.speed + d.phase;
+          pArr[i * 3] = d.baseX + Math.sin(t) * d.range;
+          pArr[i * 3 + 1] = d.baseY + Math.sin(t * 1.5) * (d.range * 0.45);
+          pArr[i * 3 + 2] = d.baseZ + Math.cos(t) * d.range;
+        }
+        fireflyGeo.attributes.position.needsUpdate = true;
+      }
+
+      // Stars Twinkling Effect in Night Sky
+      if (typeof starfield !== 'undefined' && starfield && typeof starMat !== 'undefined' && starMat.opacity > 0.05) {
+        starMat.size = 2.0 + Math.sin(puppyTime * 2.8) * 0.35;
+      }
+
+      // Sun & Moon Radiant Aura Subtle Pulses
+      if (typeof sunGlow !== 'undefined' && sunGlow && typeof sunGlowMat !== 'undefined' && sunGlowMat.opacity > 0.1) {
+        const pulse = 1.0 + Math.sin(puppyTime * 1.8) * 0.04;
+        sunGlow.scale.set(34 * pulse, 34 * pulse, 1);
+      }
+      if (typeof moonGlow !== 'undefined' && moonGlow && typeof moonGlowMat !== 'undefined' && moonGlowMat.opacity > 0.1) {
+        const pulse = 1.0 + Math.sin(puppyTime * 1.4) * 0.04;
+        moonGlow.scale.set(24 * pulse, 24 * pulse, 1);
+      }
+
       controls.update();
       updateAnnotations();
       renderer.render(scene, camera);
     }
+
+    // Initial environment synchronization (Daylight default)
+    setLightingEnvironment('day', true);
     animate();
   </script>
 </body>
