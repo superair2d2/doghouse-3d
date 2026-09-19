@@ -185,15 +185,14 @@
     }
 
     /* Floating View Mode Bar (Top Right) */
-    /* Floating View Mode & Lighting Bar (Top Right) */
     .mode-bar {
       position: absolute;
       top: 86px;
       right: 20px;
-      padding: 6px 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
       border-radius: 12px;
     }
     .mode-row {
@@ -230,9 +229,9 @@
       box-shadow: 0 0 12px var(--blueprint-glow);
     }
 
-    /* Lighting Atmosphere Quick Bar */
+    /* Lighting Atmosphere Quick Bar (Mobile only: on PC, lighting is controlled via Left Sidebar) */
     .mode-env-row {
-      display: flex;
+      display: none; /* PC 모드에서는 우측 상단 낮/노을/밤 선택창 숨김 (좌측 패널과 중복 방지 및 참조자료 겹침 방지) */
       gap: 5px;
       padding-top: 5px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -886,11 +885,12 @@
       }
 
       .mode-env-row {
-        display: flex;
+        display: flex !important;
         gap: 5px;
         width: 100%;
         margin-top: 2px;
         padding-top: 5px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
       .mode-env-row .env-btn {
         flex: 1;
@@ -1350,7 +1350,7 @@
       </button>
       <button class="env-btn" data-env="night" title="달빛과 별무리 야경 (반딧불이)">
         <i class="fa-solid fa-moon"></i>
-        <span>밤 (달빛)</span>
+        <span>밤</span>
       </button>
     </div>
   </div>
@@ -1409,7 +1409,7 @@
     <div class="env-row">
       <button class="env-btn active" data-env="day"><i class="fa-solid fa-sun"></i> 낮</button>
       <button class="env-btn" data-env="sunset"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
-      <button class="env-btn" data-env="night"><i class="fa-solid fa-moon"></i> 밤 (조명)</button>
+      <button class="env-btn" data-env="night"><i class="fa-solid fa-moon"></i> 밤</button>
     </div>
   </aside>
 
@@ -1563,7 +1563,7 @@
       <div class="env-row" style="margin-top: 8px;">
         <button class="env-btn active" data-env="day" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-sun"></i> 낮</button>
         <button class="env-btn" data-env="sunset" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-cloud-sun"></i> 노을</button>
-        <button class="env-btn" data-env="night" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-moon"></i> 밤 (조명)</button>
+        <button class="env-btn" data-env="night" style="padding: 10px 6px; font-size: 12px;"><i class="fa-solid fa-moon"></i> 밤</button>
       </div>
     </div>
 
