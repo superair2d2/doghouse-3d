@@ -3056,7 +3056,8 @@
     // 8. Adorable White Puppy (Interactive Behavior Modes: Play, Rest, Sleep)
     let puppyGroup, puppyBody, puppyHeadGroup, puppySnout, puppyNose, puppyTongue;
     let leftEye, rightEye, leftCatch, rightCatch, leftEar, rightEar;
-    let leftLeg, rightLeg, leftPaw, rightPaw, leftHind, rightHind, puppyTailGroup;
+    let collarMesh, tagMesh, puppyTailGroup;
+    let leftFrontGroup, rightFrontGroup, leftHindGroup, rightHindGroup;
 
     puppyGroup = new THREE.Group();
     // 문 앞 디딤판 오른쪽 잔디 (x: 0.65, z: 1.88), 집에서 나와 방문자를 반갑게 맞이하는 방향
@@ -3145,59 +3146,88 @@
 
     // Red Collar with Gold Medallion Tag (matches doghouse red)
     const collarGeo = new THREE.TorusGeometry(0.16, 0.022, 12, 28);
-    const collarMesh = new THREE.Mesh(collarGeo, matPuppyCollar);
+    collarMesh = new THREE.Mesh(collarGeo, matPuppyCollar);
     collarMesh.rotation.x = Math.PI / 2;
     collarMesh.position.set(0, 0.40, 0.04);
     collarMesh.castShadow = true;
     puppyGroup.add(collarMesh);
 
     const tagGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.008, 16);
-    const tagMesh = new THREE.Mesh(tagGeo, matPuppyTag);
+    tagMesh = new THREE.Mesh(tagGeo, matPuppyTag);
     tagMesh.rotation.x = Math.PI / 2;
     tagMesh.position.set(0, 0.36, 0.19);
     tagMesh.castShadow = true;
     puppyGroup.add(tagMesh);
 
-    // Front Legs & Paws
-    const frontLegGeo = new THREE.CylinderGeometry(0.045, 0.04, 0.22, 16);
-    const pawGeo = new THREE.SphereGeometry(0.052, 16, 16);
-    pawGeo.scale(1.0, 0.6, 1.2);
+    // 4 Articulated Leg Groups (Pivoting at shoulders & hips for genuine 4-legged gallop & sit)
+    const frontLegGeo = new THREE.CylinderGeometry(0.042, 0.036, 0.20, 16);
+    const pawGeo = new THREE.SphereGeometry(0.050, 16, 16);
+    pawGeo.scale(1.0, 0.55, 1.25);
+    const hindThighGeo = new THREE.SphereGeometry(0.080, 16, 16);
+    hindThighGeo.scale(1.1, 1.25, 1.1);
+    const hindShankGeo = new THREE.CylinderGeometry(0.040, 0.034, 0.18, 16);
 
-    leftLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
-    leftLeg.position.set(-0.085, 0.12, 0.12);
-    leftLeg.rotation.x = -0.08;
-    leftLeg.castShadow = true;
-    puppyGroup.add(leftLeg);
+    // Left Front Leg Group (Pivot at left shoulder)
+    leftFrontGroup = new THREE.Group();
+    leftFrontGroup.position.set(-0.085, 0.21, 0.12);
+    const lfCyl = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    lfCyl.position.set(0, -0.09, 0);
+    lfCyl.castShadow = true;
+    leftFrontGroup.add(lfCyl);
+    const lfPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    lfPaw.position.set(0, -0.18, 0.025);
+    lfPaw.castShadow = true;
+    leftFrontGroup.add(lfPaw);
+    puppyGroup.add(leftFrontGroup);
 
-    leftPaw = new THREE.Mesh(pawGeo, matPuppyFur);
-    leftPaw.position.set(-0.085, 0.03, 0.15);
-    leftPaw.castShadow = true;
-    puppyGroup.add(leftPaw);
+    // Right Front Leg Group (Pivot at right shoulder)
+    rightFrontGroup = new THREE.Group();
+    rightFrontGroup.position.set(0.085, 0.21, 0.12);
+    const rfCyl = new THREE.Mesh(frontLegGeo, matPuppyFur);
+    rfCyl.position.set(0, -0.09, 0);
+    rfCyl.castShadow = true;
+    rightFrontGroup.add(rfCyl);
+    const rfPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    rfPaw.position.set(0, -0.18, 0.025);
+    rfPaw.castShadow = true;
+    rightFrontGroup.add(rfPaw);
+    puppyGroup.add(rightFrontGroup);
 
-    rightLeg = new THREE.Mesh(frontLegGeo, matPuppyFur);
-    rightLeg.position.set(0.085, 0.12, 0.12);
-    rightLeg.rotation.x = -0.08;
-    rightLeg.castShadow = true;
-    puppyGroup.add(rightLeg);
+    // Left Hind Leg Group (Pivot at left hip)
+    leftHindGroup = new THREE.Group();
+    leftHindGroup.position.set(-0.125, 0.12, -0.03);
+    leftHindGroup.rotation.x = -1.22; // Initial sitting fold
+    const lhThigh = new THREE.Mesh(hindThighGeo, matPuppyFur);
+    lhThigh.position.set(0, -0.02, 0);
+    lhThigh.castShadow = true;
+    leftHindGroup.add(lhThigh);
+    const lhShank = new THREE.Mesh(hindShankGeo, matPuppyFur);
+    lhShank.position.set(0, -0.09, 0);
+    lhShank.castShadow = true;
+    leftHindGroup.add(lhShank);
+    const lhPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    lhPaw.position.set(0, -0.17, 0.025);
+    lhPaw.castShadow = true;
+    leftHindGroup.add(lhPaw);
+    puppyGroup.add(leftHindGroup);
 
-    rightPaw = new THREE.Mesh(pawGeo, matPuppyFur);
-    rightPaw.position.set(0.085, 0.03, 0.15);
-    rightPaw.castShadow = true;
-    puppyGroup.add(rightPaw);
-
-    // Sitting Hind Legs
-    const hindLegGeo = new THREE.SphereGeometry(0.12, 16, 16);
-    hindLegGeo.scale(1.25, 0.8, 1.4);
-
-    leftHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
-    leftHind.position.set(-0.16, 0.08, -0.02);
-    leftHind.castShadow = true;
-    puppyGroup.add(leftHind);
-
-    rightHind = new THREE.Mesh(hindLegGeo, matPuppyFur);
-    rightHind.position.set(0.16, 0.08, -0.02);
-    rightHind.castShadow = true;
-    puppyGroup.add(rightHind);
+    // Right Hind Leg Group (Pivot at right hip)
+    rightHindGroup = new THREE.Group();
+    rightHindGroup.position.set(0.125, 0.12, -0.03);
+    rightHindGroup.rotation.x = -1.22; // Initial sitting fold
+    const rhThigh = new THREE.Mesh(hindThighGeo, matPuppyFur);
+    rhThigh.position.set(0, -0.02, 0);
+    rhThigh.castShadow = true;
+    rightHindGroup.add(rhThigh);
+    const rhShank = new THREE.Mesh(hindShankGeo, matPuppyFur);
+    rhShank.position.set(0, -0.09, 0);
+    rhShank.castShadow = true;
+    rightHindGroup.add(rhShank);
+    const rhPaw = new THREE.Mesh(pawGeo, matPuppyFur);
+    rhPaw.position.set(0, -0.17, 0.025);
+    rhPaw.castShadow = true;
+    rightHindGroup.add(rhPaw);
+    puppyGroup.add(rightHindGroup);
 
     // Wagging Fluffy Tail
     puppyTailGroup = new THREE.Group();
@@ -4278,13 +4308,20 @@
     }
 
     /* =========================================================================
-       PUPPY BEHAVIOR CONTROLLER (Play, Rest, Sleep)
+       PUPPY BEHAVIOR CONTROLLER (4-Legged Play, Rest, Sleep)
        ========================================================================= */
     let dogMode = 'rest'; // 'play' | 'rest' | 'sleep'
-    let dogRunAngle = 0;
-    let dogHopTime = 0;
+    let playAngle = 0;
+    let gallopTime = 0;
     let dogSleepTime = 0;
     let isDogTransitioning = false;
+
+    // Play State Machine (Sprint, Sniff, Play Bow, Spin, Porch Visit)
+    let playSubState = 'sprint';
+    let playSubTimer = 0;
+    let playSubDuration = 4.5;
+    let playSubIndex = 0;
+    const playSequence = ['sprint', 'sniff', 'sprint', 'bow', 'sprint', 'spin', 'sprint', 'hop'];
 
     function setDogMode(mode, instant = false) {
       if (dogMode === mode && !instant) return;
@@ -4300,7 +4337,7 @@
       const statusText = document.getElementById('mobile-dog-status-text');
       if (statusText) {
         if (mode === 'play') {
-          statusText.textContent = '강아지가 마당과 도그하우스 주변을 신나게 뛰어놀고 있습니다! 🐾';
+          statusText.textContent = '강아지가 네발로 신나게 잔디 마당을 질주합니다! 🐾';
         } else if (mode === 'rest') {
           statusText.textContent = '강아지가 출입문 앞에서 꼬리를 살랑살랑 흔들며 편안하게 쉬고 있습니다.';
         } else if (mode === 'sleep') {
@@ -4326,24 +4363,45 @@
       gsap.killTweensOf(puppyGroup.rotation);
       if (typeof puppyBody !== 'undefined' && puppyBody) {
         gsap.killTweensOf(puppyBody.scale);
+        gsap.killTweensOf(puppyBody.position);
         gsap.killTweensOf(puppyBody.rotation);
       }
       if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
         gsap.killTweensOf(puppyHeadGroup.position);
         gsap.killTweensOf(puppyHeadGroup.rotation);
       }
-      if (typeof leftLeg !== 'undefined' && leftLeg) gsap.killTweensOf(leftLeg.rotation);
-      if (typeof rightLeg !== 'undefined' && rightLeg) gsap.killTweensOf(rightLeg.rotation);
-      if (typeof leftHind !== 'undefined' && leftHind) gsap.killTweensOf(leftHind.rotation);
-      if (typeof rightHind !== 'undefined' && rightHind) gsap.killTweensOf(rightHind.rotation);
-      if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) gsap.killTweensOf(puppyTailGroup.rotation);
+      if (typeof collarMesh !== 'undefined' && collarMesh) {
+        gsap.killTweensOf(collarMesh.position);
+        gsap.killTweensOf(collarMesh.rotation);
+      }
+      if (typeof tagMesh !== 'undefined' && tagMesh) gsap.killTweensOf(tagMesh.position);
+      if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+        gsap.killTweensOf(leftFrontGroup.position);
+        gsap.killTweensOf(leftFrontGroup.rotation);
+      }
+      if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+        gsap.killTweensOf(rightFrontGroup.position);
+        gsap.killTweensOf(rightFrontGroup.rotation);
+      }
+      if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+        gsap.killTweensOf(leftHindGroup.position);
+        gsap.killTweensOf(leftHindGroup.rotation);
+      }
+      if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+        gsap.killTweensOf(rightHindGroup.position);
+        gsap.killTweensOf(rightHindGroup.rotation);
+      }
+      if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+        gsap.killTweensOf(puppyTailGroup.position);
+        gsap.killTweensOf(puppyTailGroup.rotation);
+      }
 
       const dur = instant ? 0 : 0.85;
       const ease = "power2.inOut";
 
       if (mode === 'rest') {
         isDogTransitioning = true;
-        // Smoothly return to doorway front yard
+        // Smoothly return to doorway front yard in sitting pose
         gsap.to(puppyGroup.position, {
           x: 0.68,
           y: 0.02,
@@ -4356,16 +4414,46 @@
 
         if (typeof puppyBody !== 'undefined' && puppyBody) {
           gsap.to(puppyBody.scale, { x: 0.96, y: 1.15, z: 0.92, duration: dur, ease });
+          gsap.to(puppyBody.position, { x: 0, y: 0.28, z: 0, duration: dur, ease });
           gsap.to(puppyBody.rotation, { x: 0.15, y: 0, z: 0, duration: dur, ease });
         }
         if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
           gsap.to(puppyHeadGroup.position, { x: 0, y: 0.52, z: 0.07, duration: dur, ease });
           gsap.to(puppyHeadGroup.rotation, { x: 0, y: 0, z: 0.06, duration: dur, ease });
         }
-        if (typeof leftLeg !== 'undefined' && leftLeg) gsap.to(leftLeg.rotation, { x: -0.08, duration: dur, ease });
-        if (typeof rightLeg !== 'undefined' && rightLeg) gsap.to(rightLeg.rotation, { x: -0.08, duration: dur, ease });
-        if (typeof leftHind !== 'undefined' && leftHind) gsap.to(leftHind.rotation, { x: 0, duration: dur, ease });
-        if (typeof rightHind !== 'undefined' && rightHind) gsap.to(rightHind.rotation, { x: 0, duration: dur, ease });
+        if (typeof collarMesh !== 'undefined' && collarMesh) {
+          gsap.to(collarMesh.position, { x: 0, y: 0.40, z: 0.04, duration: dur, ease });
+          gsap.to(collarMesh.rotation, { x: Math.PI / 2, duration: dur, ease });
+        }
+        if (typeof tagMesh !== 'undefined' && tagMesh) {
+          gsap.to(tagMesh.position, { x: 0, y: 0.36, z: 0.19, duration: dur, ease });
+        }
+
+        // Front legs straight down
+        if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+          gsap.to(leftFrontGroup.position, { x: -0.085, y: 0.21, z: 0.12, duration: dur, ease });
+          gsap.to(leftFrontGroup.rotation, { x: -0.08, duration: dur, ease });
+        }
+        if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+          gsap.to(rightFrontGroup.position, { x: 0.085, y: 0.21, z: 0.12, duration: dur, ease });
+          gsap.to(rightFrontGroup.rotation, { x: -0.08, duration: dur, ease });
+        }
+
+        // Hind legs folded forward on grass in sitting pose
+        if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+          gsap.to(leftHindGroup.position, { x: -0.125, y: 0.12, z: -0.03, duration: dur, ease });
+          gsap.to(leftHindGroup.rotation, { x: -1.22, duration: dur, ease });
+        }
+        if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+          gsap.to(rightHindGroup.position, { x: 0.125, y: 0.12, z: -0.03, duration: dur, ease });
+          gsap.to(rightHindGroup.rotation, { x: -1.22, duration: dur, ease });
+        }
+
+        if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+          gsap.to(puppyTailGroup.position, { x: 0, y: 0.12, z: -0.18, duration: dur, ease });
+          gsap.to(puppyTailGroup.rotation, { x: -0.15, y: 0, z: 0, duration: dur, ease });
+        }
+
         if (typeof leftEar !== 'undefined' && leftEar) gsap.to(leftEar.rotation, { x: 0.2, y: 0, z: 0.42, duration: dur, ease });
         if (typeof rightEar !== 'undefined' && rightEar) gsap.to(rightEar.rotation, { x: 0.2, y: 0, z: -0.42, duration: dur, ease });
 
@@ -4376,7 +4464,9 @@
 
       } else if (mode === 'sleep') {
         isDogTransitioning = true;
-        // Enter house and lie curled up on cushion bed
+        const dur = instant ? 0 : 0.85;
+        const ease = "power2.inOut";
+
         const tl = gsap.timeline({
           onComplete: () => { isDogTransitioning = false; }
         });
@@ -4402,20 +4492,37 @@
         }, instant ? 0 : ">-0.6");
 
         if (typeof puppyBody !== 'undefined' && puppyBody) {
-          tl.to(puppyBody.scale, { x: 1.05, y: 0.86, z: 1.0, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyBody.scale, { x: 1.05, y: 0.86, z: 1.05, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyBody.position, { x: 0, y: 0.20, z: 0, duration: instant ? 0 : 0.7, ease }, "<");
           tl.to(puppyBody.rotation, { x: 0.28, duration: instant ? 0 : 0.7, ease }, "<");
         }
         if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
-          tl.to(puppyHeadGroup.position, { x: 0.02, y: 0.40, z: 0.12, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyHeadGroup.position, { x: 0.02, y: 0.38, z: 0.12, duration: instant ? 0 : 0.7, ease }, "<");
           tl.to(puppyHeadGroup.rotation, { x: 0.15, y: 0.22, z: -0.28, duration: instant ? 0 : 0.7, ease }, "<");
         }
-        if (typeof leftEar !== 'undefined' && leftEar) tl.to(leftEar.rotation, { x: 0.1, y: 0, z: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof rightEar !== 'undefined' && rightEar) tl.to(rightEar.rotation, { x: 0.1, y: 0, z: -0.25, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof leftLeg !== 'undefined' && leftLeg) tl.to(leftLeg.rotation, { x: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof rightLeg !== 'undefined' && rightLeg) tl.to(rightLeg.rotation, { x: 0.25, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof leftHind !== 'undefined' && leftHind) tl.to(leftHind.rotation, { x: 0.15, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof rightHind !== 'undefined' && rightHind) tl.to(rightHind.rotation, { x: 0.15, duration: instant ? 0 : 0.7, ease }, "<");
-        if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) tl.to(puppyTailGroup.rotation, { x: -0.42, y: 0.25, z: 0, duration: instant ? 0 : 0.7, ease }, "<");
+        if (typeof collarMesh !== 'undefined' && collarMesh) {
+          tl.to(collarMesh.position, { x: 0, y: 0.34, z: 0.08, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+
+        if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+          tl.to(leftFrontGroup.rotation, { x: 0.4, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+        if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+          tl.to(rightFrontGroup.rotation, { x: 0.4, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+        if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+          tl.to(leftHindGroup.position, { x: -0.11, y: 0.14, z: -0.06, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(leftHindGroup.rotation, { x: 0.35, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+        if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+          tl.to(rightHindGroup.position, { x: 0.11, y: 0.14, z: -0.06, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(rightHindGroup.rotation, { x: 0.35, duration: instant ? 0 : 0.7, ease }, "<");
+        }
+
+        if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+          tl.to(puppyTailGroup.position, { x: 0, y: 0.14, z: -0.16, duration: instant ? 0 : 0.7, ease }, "<");
+          tl.to(puppyTailGroup.rotation, { x: -0.42, y: 0.25, z: 0, duration: instant ? 0 : 0.7, ease }, "<");
+        }
 
         setTimeout(() => {
           if (dogMode === 'sleep') {
@@ -4427,17 +4534,55 @@
         }, instant ? 0 : 700);
 
       } else if (mode === 'play') {
+        playSubIndex = 0;
+        playSubState = 'sprint';
+        playSubTimer = 0;
+        playSubDuration = 4.5;
+        gallopTime = 0;
+
+        // Open eyes
         if (typeof leftEye !== 'undefined' && leftEye) leftEye.scale.set(1, 1, 1);
         if (typeof rightEye !== 'undefined' && rightEye) rightEye.scale.set(1, 1, 1);
         if (typeof leftCatch !== 'undefined' && leftCatch) leftCatch.visible = true;
         if (typeof rightCatch !== 'undefined' && rightCatch) rightCatch.visible = true;
 
+        // Morph to quadruped 4-legged horizontal posture
         if (typeof puppyBody !== 'undefined' && puppyBody) {
-          gsap.to(puppyBody.scale, { x: 0.96, y: 1.15, z: 0.92, duration: 0.35 });
-          gsap.to(puppyBody.rotation, { x: 0.15, duration: 0.35 });
+          gsap.to(puppyBody.scale, { x: 0.92, y: 0.90, z: 1.25, duration: 0.45 });
+          gsap.to(puppyBody.position, { x: 0, y: 0.22, z: 0.0, duration: 0.45 });
+          gsap.to(puppyBody.rotation, { x: 0, y: 0, z: 0, duration: 0.45 });
         }
         if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
-          gsap.to(puppyHeadGroup.position, { x: 0, y: 0.52, z: 0.07, duration: 0.35 });
+          gsap.to(puppyHeadGroup.position, { x: 0, y: 0.35, z: 0.18, duration: 0.45 });
+          gsap.to(puppyHeadGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.45 });
+        }
+        if (typeof collarMesh !== 'undefined' && collarMesh) {
+          gsap.to(collarMesh.position, { x: 0, y: 0.29, z: 0.14, duration: 0.45 });
+          gsap.to(collarMesh.rotation, { x: Math.PI / 2.3, duration: 0.45 });
+        }
+        if (typeof tagMesh !== 'undefined' && tagMesh) {
+          gsap.to(tagMesh.position, { x: 0, y: 0.22, z: 0.22, duration: 0.45 });
+        }
+
+        // 4 legs extend down to stand and run
+        if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+          gsap.to(leftFrontGroup.position, { x: -0.085, y: 0.21, z: 0.12, duration: 0.45 });
+        }
+        if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+          gsap.to(rightFrontGroup.position, { x: 0.085, y: 0.21, z: 0.12, duration: 0.45 });
+        }
+        if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+          gsap.to(leftHindGroup.position, { x: -0.115, y: 0.20, z: -0.12, duration: 0.45 });
+          gsap.to(leftHindGroup.rotation, { x: 0, duration: 0.45 });
+        }
+        if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+          gsap.to(rightHindGroup.position, { x: 0.115, y: 0.20, z: -0.12, duration: 0.45 });
+          gsap.to(rightHindGroup.rotation, { x: 0, duration: 0.45 });
+        }
+
+        if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+          gsap.to(puppyTailGroup.position, { x: 0, y: 0.24, z: -0.21, duration: 0.45 });
+          gsap.to(puppyTailGroup.rotation, { x: 0.35, y: 0, z: 0, duration: 0.45 });
         }
 
         if (prevMode === 'sleep') {
@@ -4445,18 +4590,16 @@
           const tl = gsap.timeline({
             onComplete: () => {
               isDogTransitioning = false;
-              dogRunAngle = Math.PI * 0.45;
+              playAngle = Math.PI * 0.45;
             }
           });
           tl.to(puppyGroup.position, { x: 0.0, y: 0.02, z: 1.5, duration: 0.55, ease: "power1.out" });
           tl.to(puppyGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.45, ease: "power1.out" }, 0);
           tl.to(puppyGroup.position, { x: 1.2, y: 0.02, z: 2.0, duration: 0.45, ease: "power1.in" });
         } else {
-          const radX = 2.6;
-          const radZ = 2.3;
-          const centerX = 0.0;
-          const centerZ = 0.4;
-          dogRunAngle = Math.atan2(puppyGroup.position.z - centerZ, puppyGroup.position.x - centerX);
+          const cx = 0.0;
+          const cz = 0.35;
+          playAngle = Math.atan2(puppyGroup.position.z - cz, puppyGroup.position.x - cx);
           isDogTransitioning = false;
         }
       }
@@ -4772,52 +4915,284 @@
       if (typeof puppyGroup !== 'undefined' && puppyGroup && puppyGroup.visible) {
         if (!isDogTransitioning) {
           if (dogMode === 'play') {
-            dogRunAngle += 0.022;
-            dogHopTime += 0.16;
+            playSubTimer += 0.018;
+            if (playSubTimer >= playSubDuration) {
+              playSubTimer = 0;
+              playSubIndex = (playSubIndex + 1) % playSequence.length;
+              playSubState = playSequence[playSubIndex];
 
-            const radX = 2.6;
-            const radZ = 2.3;
-            const centerX = 0.0;
-            const centerZ = 0.4;
-            const px = centerX + Math.cos(dogRunAngle) * radX;
-            const pz = centerZ + Math.sin(dogRunAngle) * radZ;
-
-            // Face forward direction along circular path
-            const dx = -Math.sin(dogRunAngle) * radX;
-            const dz = Math.cos(dogRunAngle) * radZ;
-            const heading = Math.atan2(dx, dz);
-
-            puppyGroup.position.x = px;
-            puppyGroup.position.z = pz;
-            puppyGroup.position.y = 0.02 + Math.abs(Math.sin(dogHopTime * 2.5)) * 0.08;
-            puppyGroup.rotation.y = heading;
-            puppyGroup.rotation.x = 0.10 + Math.sin(dogHopTime * 2.5) * 0.06;
-            puppyGroup.rotation.z = Math.sin(dogHopTime * 1.25) * 0.04;
-
-            // Gallop leg trot
-            if (typeof leftLeg !== 'undefined' && leftLeg) {
-              leftLeg.rotation.x = -0.08 + Math.sin(dogHopTime * 2.5) * 0.5;
-              rightLeg.rotation.x = -0.08 - Math.sin(dogHopTime * 2.5) * 0.5;
-            }
-            if (typeof leftHind !== 'undefined' && leftHind) {
-              leftHind.rotation.x = -Math.sin(dogHopTime * 2.5) * 0.35;
-              rightHind.rotation.x = Math.sin(dogHopTime * 2.5) * 0.35;
+              if (playSubState === 'sprint') {
+                playSubDuration = 4.2 + Math.random() * 1.5;
+              } else if (playSubState === 'sniff') {
+                playSubDuration = 3.2 + Math.random() * 1.0;
+              } else if (playSubState === 'bow') {
+                playSubDuration = 2.8;
+                playPuppyBarkSound();
+              } else if (playSubState === 'spin') {
+                playSubDuration = 2.2;
+              } else if (playSubState === 'hop') {
+                playSubDuration = 3.0;
+                playPuppyBarkSound();
+              }
             }
 
-            // Head and floppy ears bobbing
-            if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
-              puppyHeadGroup.rotation.x = Math.sin(dogHopTime * 2.5) * 0.07;
-              puppyHeadGroup.rotation.z = Math.sin(dogHopTime * 1.25) * 0.08;
-            }
-            if (typeof leftEar !== 'undefined' && leftEar) {
-              leftEar.rotation.z = 0.42 + Math.sin(dogHopTime * 2.5) * 0.18;
-              rightEar.rotation.z = -0.42 - Math.sin(dogHopTime * 2.5) * 0.18;
+            // Update mobile status text dynamically to show the puppy's lively play activity
+            const statusText = document.getElementById('mobile-dog-status-text');
+            if (statusText) {
+              if (playSubState === 'sprint') {
+                statusText.textContent = '강아지가 네발로 잔디 마당을 신나게 달립니다! 🐾';
+              } else if (playSubState === 'sniff') {
+                statusText.textContent = '강아지가 멈춰 서서 풀잎 냄새를 킁킁 맡고 있어요. 🌸';
+              } else if (playSubState === 'bow') {
+                statusText.textContent = '강아지가 엉덩이를 들고 신나게 놀자고 장난칩니다! (Play Bow) 🐶';
+              } else if (playSubState === 'spin') {
+                statusText.textContent = '강아지가 너무 신나서 제자리 360도 스핀을 돕니다! 🌀';
+              } else if (playSubState === 'hop') {
+                statusText.textContent = '강아지가 현관 데크 앞으로 와서 반갑게 깡충깡충 뜁니다! ✨';
+              }
             }
 
-            // Excited tail wagging
-            if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
-              puppyTailGroup.rotation.y = Math.sin(puppyTime * 16.0) * 0.65;
-              puppyTailGroup.rotation.x = -0.28 + Math.sin(puppyTime * 8.0) * 0.12;
+            if (playSubState === 'sprint') {
+              playAngle += 0.024;
+              gallopTime += 0.25;
+
+              // Organic winding path with changing radius around the yard
+              const rX = 2.5 + Math.sin(playAngle * 2.0) * 0.45;
+              const rZ = 2.2 + Math.cos(playAngle * 3.0) * 0.4;
+              const cX = 0.0 + Math.sin(playAngle * 1.2) * 0.25;
+              const cZ = 0.35;
+
+              const px = cX + Math.cos(playAngle) * rX;
+              const pz = cZ + Math.sin(playAngle) * rZ;
+
+              // Smooth heading calculation
+              const dx = -Math.sin(playAngle) * rX;
+              const dz = Math.cos(playAngle) * rZ;
+              const targetHeading = Math.atan2(dx, dz);
+
+              let diff = targetHeading - puppyGroup.rotation.y;
+              while (diff < -Math.PI) diff += Math.PI * 2;
+              while (diff > Math.PI) diff -= Math.PI * 2;
+              puppyGroup.rotation.y += diff * 0.22;
+
+              puppyGroup.position.x = px;
+              puppyGroup.position.z = pz;
+              puppyGroup.position.y = 0.02 + Math.abs(Math.sin(gallopTime)) * 0.075;
+              puppyGroup.rotation.x = Math.sin(gallopTime * 2) * 0.06;
+              puppyGroup.rotation.z = Math.sin(gallopTime) * 0.04;
+
+              // Four-Legged Quadruped Gallop Trot (Diagonal Coordination)
+              const legSwing = Math.sin(gallopTime) * 0.62;
+              if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+                leftFrontGroup.rotation.x = legSwing;
+              }
+              if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+                rightFrontGroup.rotation.x = -legSwing;
+              }
+              if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+                leftHindGroup.position.set(-0.115, 0.20, -0.12);
+                leftHindGroup.rotation.x = -legSwing * 0.72;
+              }
+              if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+                rightHindGroup.position.set(0.115, 0.20, -0.12);
+                rightHindGroup.rotation.x = legSwing * 0.72;
+              }
+
+              // Head, body, and tail
+              if (typeof puppyBody !== 'undefined' && puppyBody) {
+                puppyBody.scale.set(0.92, 0.90, 1.25);
+                puppyBody.position.set(0, 0.22, 0);
+                puppyBody.rotation.set(0, 0, 0);
+              }
+              if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+                puppyHeadGroup.position.set(0, 0.35, 0.18);
+                puppyHeadGroup.rotation.x = Math.sin(gallopTime * 2) * 0.07;
+                puppyHeadGroup.rotation.y = 0;
+                puppyHeadGroup.rotation.z = Math.sin(gallopTime) * 0.06;
+              }
+              if (typeof leftEar !== 'undefined' && leftEar) {
+                leftEar.rotation.z = 0.42 + Math.sin(gallopTime * 2) * 0.22;
+                rightEar.rotation.z = -0.42 - Math.sin(gallopTime * 2) * 0.22;
+              }
+              if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+                puppyTailGroup.position.set(0, 0.24, -0.21);
+                puppyTailGroup.rotation.x = 0.35 + Math.sin(puppyTime * 8.0) * 0.12;
+                puppyTailGroup.rotation.y = Math.sin(puppyTime * 18.0) * 0.75;
+              }
+
+            } else if (playSubState === 'sniff') {
+              // Halts standing on all 4 legs, lowers snout to sniff grass
+              puppyGroup.position.y = 0.02;
+              puppyGroup.rotation.x = 0.04;
+              puppyGroup.rotation.z = 0;
+
+              // All 4 legs planted firmly
+              if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) leftFrontGroup.rotation.x = 0.04;
+              if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) rightFrontGroup.rotation.x = -0.04;
+              if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+                leftHindGroup.position.set(-0.115, 0.20, -0.12);
+                leftHindGroup.rotation.x = 0.02;
+              }
+              if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+                rightHindGroup.position.set(0.115, 0.20, -0.12);
+                rightHindGroup.rotation.x = -0.02;
+              }
+
+              // Snout down sniffing grass with micro-twitching and curious tilt
+              if (typeof puppyBody !== 'undefined' && puppyBody) {
+                puppyBody.scale.set(0.92, 0.90, 1.25);
+                puppyBody.position.set(0, 0.20, 0);
+                puppyBody.rotation.set(0.12, 0, 0);
+              }
+              if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+                puppyHeadGroup.position.set(0, 0.22 + Math.sin(puppyTime * 12.0) * 0.012, 0.24);
+                puppyHeadGroup.rotation.x = 0.45;
+                puppyHeadGroup.rotation.y = Math.sin(puppyTime * 1.8) * 0.18;
+                puppyHeadGroup.rotation.z = Math.sin(puppyTime * 2.4) * 0.22;
+              }
+              if (typeof leftEar !== 'undefined' && leftEar) {
+                leftEar.rotation.z = 0.32 + Math.sin(puppyTime * 2.4) * 0.1;
+                rightEar.rotation.z = -0.32 - Math.sin(puppyTime * 2.4) * 0.1;
+              }
+              if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+                puppyTailGroup.position.set(0, 0.24, -0.21);
+                puppyTailGroup.rotation.x = 0.20;
+                puppyTailGroup.rotation.y = Math.sin(puppyTime * 5.5) * 0.42;
+              }
+
+            } else if (playSubState === 'bow') {
+              // Classic Play Bow: front down, rump up, wild happy tail wag!
+              puppyGroup.position.y = 0.01;
+              puppyGroup.rotation.x = 0;
+              puppyGroup.rotation.z = 0;
+
+              if (typeof puppyBody !== 'undefined' && puppyBody) {
+                puppyBody.scale.set(0.92, 0.90, 1.25);
+                puppyBody.position.set(0, 0.16, 0);
+                puppyBody.rotation.set(0.32, 0, 0);
+              }
+              // Front legs bent flat forward
+              if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) leftFrontGroup.rotation.x = 0.58;
+              if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) rightFrontGroup.rotation.x = 0.58;
+
+              // Hind legs standing upright pushing rump high
+              if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+                leftHindGroup.position.set(-0.115, 0.22, -0.12);
+                leftHindGroup.rotation.x = -0.22;
+              }
+              if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+                rightHindGroup.position.set(0.115, 0.22, -0.12);
+                rightHindGroup.rotation.x = -0.22;
+              }
+
+              // Head looking up enthusiastically
+              if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+                puppyHeadGroup.position.set(0, 0.26, 0.23);
+                puppyHeadGroup.rotation.x = -0.32;
+                puppyHeadGroup.rotation.y = Math.sin(puppyTime * 6.0) * 0.08;
+                puppyHeadGroup.rotation.z = Math.sin(puppyTime * 4.0) * 0.05;
+              }
+              if (typeof leftEar !== 'undefined' && leftEar) {
+                leftEar.rotation.z = 0.55;
+                rightEar.rotation.z = -0.55;
+              }
+              // Tail held straight up and whipping with excitement
+              if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+                puppyTailGroup.position.set(0, 0.29, -0.21);
+                puppyTailGroup.rotation.x = 0.82;
+                puppyTailGroup.rotation.y = Math.sin(puppyTime * 24.0) * 0.85;
+              }
+
+            } else if (playSubState === 'spin') {
+              // Zoomies 360 Spin!
+              puppyGroup.rotation.y += 0.15;
+              puppyGroup.position.y = 0.02 + Math.abs(Math.sin(puppyTime * 10)) * 0.035;
+              puppyGroup.rotation.x = 0.06;
+              puppyGroup.rotation.z = -0.06;
+
+              // Feet scurrying
+              const scramble = Math.sin(puppyTime * 22) * 0.35;
+              if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) leftFrontGroup.rotation.x = scramble;
+              if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) rightFrontGroup.rotation.x = -scramble;
+              if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+                leftHindGroup.position.set(-0.115, 0.20, -0.12);
+                leftHindGroup.rotation.x = -scramble * 0.7;
+              }
+              if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+                rightHindGroup.position.set(0.115, 0.20, -0.12);
+                rightHindGroup.rotation.x = scramble * 0.7;
+              }
+
+              if (typeof puppyBody !== 'undefined' && puppyBody) {
+                puppyBody.scale.set(0.92, 0.90, 1.25);
+                puppyBody.position.set(0, 0.22, 0);
+                puppyBody.rotation.set(0, 0, 0);
+              }
+              if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+                puppyHeadGroup.position.set(0, 0.35, 0.18);
+                puppyHeadGroup.rotation.set(0, 0.15, -0.1);
+              }
+              if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+                puppyTailGroup.position.set(0, 0.24, -0.21);
+                puppyTailGroup.rotation.x = 0.45;
+                puppyTailGroup.rotation.y = 0.75;
+              }
+
+            } else if (playSubState === 'hop') {
+              // Move near front porch stone and do joyful vertical hops
+              const targetX = 0.52;
+              const targetZ = 1.95;
+              puppyGroup.position.x += (targetX - puppyGroup.position.x) * 0.06;
+              puppyGroup.position.z += (targetZ - puppyGroup.position.z) * 0.06;
+
+              // Face front/viewer
+              const targetYaw = -Math.PI * 0.18;
+              let dYaw = targetYaw - puppyGroup.rotation.y;
+              while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+              while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+              puppyGroup.rotation.y += dYaw * 0.12;
+
+              const hopBounce = Math.max(0, Math.sin(puppyTime * 6.5));
+              puppyGroup.position.y = 0.02 + hopBounce * 0.15;
+              puppyGroup.rotation.x = -hopBounce * 0.12;
+              puppyGroup.rotation.z = 0;
+
+              // Paws reaching up in joy
+              if (typeof leftFrontGroup !== 'undefined' && leftFrontGroup) {
+                leftFrontGroup.rotation.x = -0.12 + hopBounce * 0.48;
+              }
+              if (typeof rightFrontGroup !== 'undefined' && rightFrontGroup) {
+                rightFrontGroup.rotation.x = -0.12 + hopBounce * 0.48;
+              }
+              if (typeof leftHindGroup !== 'undefined' && leftHindGroup) {
+                leftHindGroup.position.set(-0.115, 0.20, -0.12);
+                leftHindGroup.rotation.x = -hopBounce * 0.25;
+              }
+              if (typeof rightHindGroup !== 'undefined' && rightHindGroup) {
+                rightHindGroup.position.set(0.115, 0.20, -0.12);
+                rightHindGroup.rotation.x = -hopBounce * 0.25;
+              }
+
+              if (typeof puppyBody !== 'undefined' && puppyBody) {
+                puppyBody.scale.set(0.92, 0.90, 1.25);
+                puppyBody.position.set(0, 0.22, 0);
+                puppyBody.rotation.set(-hopBounce * 0.12, 0, 0);
+              }
+              if (typeof puppyHeadGroup !== 'undefined' && puppyHeadGroup) {
+                puppyHeadGroup.position.set(0, 0.36, 0.18);
+                puppyHeadGroup.rotation.x = -0.18 - hopBounce * 0.15;
+                puppyHeadGroup.rotation.y = 0;
+                puppyHeadGroup.rotation.z = Math.sin(puppyTime * 6.5) * 0.08;
+              }
+              if (typeof leftEar !== 'undefined' && leftEar) {
+                leftEar.rotation.z = 0.42 + hopBounce * 0.28;
+                rightEar.rotation.z = -0.42 - hopBounce * 0.28;
+              }
+              if (typeof puppyTailGroup !== 'undefined' && puppyTailGroup) {
+                puppyTailGroup.position.set(0, 0.24, -0.21);
+                puppyTailGroup.rotation.x = 0.45;
+                puppyTailGroup.rotation.y = Math.sin(puppyTime * 20.0) * 0.8;
+              }
             }
 
           } else if (dogMode === 'rest') {
